@@ -1,0 +1,20 @@
+# Temporary build and rendered verification output
+/build/
+
+# Locally staged and generated distributable binaries
+/releases/
+
+# Python caches and test output
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Runtime/operator state
+logs/
+*.log
+
+# Windows and editor metadata
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
