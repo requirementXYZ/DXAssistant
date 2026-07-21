@@ -3,6 +3,17 @@
 This is the chronological record of product decisions, implementation, tests,
 packaging, and operator validation. Add new entries at the top.
 
+## 21 July 2026 - GitHub repository established and synchronized
+
+- Established `https://github.com/requirementXYZ/DXAssistant` as the canonical
+  repository on the `main` branch.
+- Published the V0.12.0 Beta authoritative source, tests, project guidance and
+  documentation in commit `9b217f9`.
+- Added a permanent project rule requiring repository synchronization and
+  pushed-commit verification for every future release.
+- Added repository exclusions for build output, generated distributables,
+  Python caches, logs, credentials and editor metadata.
+
 ## 20 July 2026 - V0.12.0 experimental multi-radio Beta release
 
 User need:
