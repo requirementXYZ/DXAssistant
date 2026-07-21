@@ -1,14 +1,22 @@
 # DX Assistant
 
-DX Assistant is a receive-only Windows companion for WSJT-X that watches for a
-selected DX callsign, uses PSK Reporter evidence to focus an FT8 band search,
-and performs guarded VFO frequency alignment through the OmniRig API. It never
-initiates transmission; the operator always remains in control.
+DX Assistant is a receive-only Windows companion for WSJT-X that helps an
+operator find and follow a target DX station more efficiently on FT8. It
+monitors WSJT-X decode traffic for a selected callsign, uses PSK Reporter data
+to narrow the search to the most likely band activity, and applies guarded VFO
+frequency alignment through the OmniRig API when the required safety checks
+pass.
+
+The application is designed to improve search and tuning workflow without
+automating transmission. It never keys the radio, never initiates a reply, and
+never takes control of operating decisions; the operator remains fully in
+control at all times.
 
 The current release is **V0.12.0 Experimental Multi-Radio Beta**. Radio support
 is capability-gated rather than model-gated: an OmniRig profile must expose the
-required dual-VFO frequency and safety-state features, and every new radio still
-requires the controlled physical validation described in the colleague guide.
+required dual-VFO frequency and safety-state features, and every new radio
+still requires the controlled physical validation described in the colleague
+guide.
 
 ## Installation
 
