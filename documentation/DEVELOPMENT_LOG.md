@@ -50,6 +50,11 @@ Packages:
 - `releases/DXAssistant-v0.13.0-beta-Setup.exe`
   - SHA-256: `B0E40C555438D9F860F95289B06886CBC48362EAD1CE9B65BE4D8A55C22D69BE`
 
+Repository synchronization:
+
+- Published the V0.13.0 authoritative source, tests, release metadata and
+  manuals to the canonical repository in commit `9cb19db`.
+
 Remaining live test:
 
 - Automated verification did not tune or transmit with a live radio. The
