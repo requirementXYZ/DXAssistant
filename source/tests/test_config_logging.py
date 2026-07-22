@@ -10,7 +10,6 @@ from dxassistant.config import (
     save_band_enabled,
     save_band_frequency,
     save_band_frequencies,
-    save_band_power,
     save_psk_search_area,
     save_target_call,
 )
@@ -55,7 +54,7 @@ class ConfigAndLoggingTests(unittest.TestCase):
             saved = json.loads(path.read_text(encoding="utf-8"))
             self.assertTrue(saved["bands"]["80m"]["enabled"])
             self.assertEqual(saved["bands"]["80m"]["frequency_mhz"], 3.573)
-            self.assertIsNone(saved["bands"]["80m"]["power_watts"])
+            self.assertNotIn("power_watts", saved["bands"]["80m"])
 
     def test_logs_decode(self):
         packet = Decode("WSJT-X", 3, True, "12:00:00", -8, 0.1, 1000, "FT8", "CQ T22TT")
@@ -86,23 +85,7 @@ class ConfigAndLoggingTests(unittest.TestCase):
             self.assertEqual([item["event"] for item in records], ["tune_failed", "monitoring_started"])
             self.assertEqual(logger.pending, [])
 
-    def test_band_power_profile_is_loaded_and_persisted(self):
-        raw = {
-            "target_call": "T22TT", "udp_host": "127.0.0.1", "udp_port": 2237,
-            "alarm_enabled": True, "heartbeat_timeout_seconds": 15,
-            "log_directory": "logs",
-            "bands": {"20m": {"enabled": True, "frequency_mhz": 14.074, "power_watts": 25}},
-        }
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "config.json"
-            path.write_text(json.dumps(raw), encoding="utf-8")
-            config = load_config(path)
-            self.assertEqual(config.bands["20m"].power_watts, 25)
-            save_band_power(config, "20m", 30)
-            saved = json.loads(path.read_text(encoding="utf-8"))
-            self.assertEqual(saved["bands"]["20m"]["power_watts"], 30)
-
-    def test_band_power_above_ftdx101d_range_is_rejected(self):
+    def test_legacy_band_power_value_is_ignored(self):
         raw = {
             "target_call": "T22TT", "udp_host": "127.0.0.1", "udp_port": 2237,
             "alarm_enabled": True, "heartbeat_timeout_seconds": 15,
@@ -112,8 +95,10 @@ class ConfigAndLoggingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "config.json"
             path.write_text(json.dumps(raw), encoding="utf-8")
-            with self.assertRaises(ValueError):
-                load_config(path)
+            config = load_config(path)
+            self.assertTrue(config.bands["20m"].enabled)
+            self.assertEqual(config.bands["20m"].frequency_mhz, 14.074)
+            self.assertFalse(hasattr(config.bands["20m"], "power_watts"))
 
     def test_psk_search_area_is_validated_and_persisted(self):
         raw = {

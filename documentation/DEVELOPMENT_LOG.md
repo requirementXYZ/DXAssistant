@@ -3,6 +3,56 @@
 This is the chronological record of product decisions, implementation, tests,
 packaging, and operator validation. Add new entries at the top.
 
+## 22 July 2026 - V0.13.1 misleading power-reference removal
+
+User need:
+
+- Remove the Max Power element because DX Assistant cannot set the radio's RF
+  power and a displayed maximum could imply protection the application does not
+  provide.
+
+Implementation:
+
+- Removed the **Max W** band-plan column, **Edit max drive** control, dashboard
+  state, configuration save function, and active `BandConfig` field.
+- Removed `power_watts` from the supplied configuration. Existing configuration
+  files containing the former field remain compatible; the value is ignored.
+- Reworked the stopped-only band controls around frequency and antenna
+  enablement only.
+- Updated the README, release notes, acceptance test, project status, installer
+  metadata and the 11-page DOCX/PDF manual. The manual now states that power
+  must be selected and confirmed directly at the radio.
+
+Verification:
+
+- 86 automated tests passed, including unchanged static receive-only safety
+  tests and new regression checks for the absent power column/control and safe
+  handling of legacy configuration values.
+- Python compilation and PowerShell bridge parser checks passed.
+- Source and portable no-radio smoke tests returned exit code 0; a four-second
+  hidden packaged-dashboard startup remained healthy.
+- The 956-entry ZIP contains the executable, bridge/runtime, configuration,
+  release notes, README, colleague guide and DOCX/PDF manuals with no runtime
+  logs or enclosing duplicate folder.
+- Silent isolated install, installed no-radio smoke and uninstall returned exit
+  code 0; `config.json` remained unchanged after uninstall.
+- Microsoft Word exported the manual to PDF; all 11 rendered pages were
+  inspected with no clipping, overlap, broken tables or missing content.
+
+Packages:
+
+- `releases/DXAssistant-v0.13.1-beta-Windows-portable.zip`
+  - SHA-256: `563C53629B5FDFD0A6171D52728F72EDF3C3A5F4DC8F564D7A891EE4A4A1CC3A`
+- `releases/DXAssistant-v0.13.1-beta-Setup.exe`
+  - SHA-256: `AD7F2D9801A61BE3BEB74137F0B745CDC97D70D11E3898F3D646141A39BDBBB0`
+
+Remaining live test:
+
+- Automated verification did not tune or transmit with a live radio. Confirm
+  that the band plan contains only Band, On and FT8 MHz columns and that the
+  stopped-only controls contain no power reference during normal receive-only
+  use.
+
 ## 22 July 2026 - V0.13.0 band-plan and dashboard release
 
 User need:

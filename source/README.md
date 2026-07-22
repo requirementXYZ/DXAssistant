@@ -1,4 +1,4 @@
-# DX Assistant V0.13.0 Beta
+# DX Assistant V0.13.1 Beta
 
 This Beta extends the session plan to 160m, 80m and 6m and improves the main
 operating display while retaining V0.12's capability-gated OmniRig support.
@@ -8,10 +8,9 @@ and never sets radio mode, split, power, or PTT.
 ## V0.13 operating-display changes
 
 The standard band plan now includes 160m at 1.840 MHz, 80m at 3.573 MHz and 6m
-at 50.313 MHz. These three bands start disabled and with no assumed maximum-drive
-reference so the connected antenna and amplifier limits remain an explicit
-operator decision. Existing saved configurations gain the three rows without
-overwriting their established band choices.
+at 50.313 MHz. These three bands start disabled so antenna suitability remains
+an explicit operator decision. Existing saved configurations gain the three
+rows without overwriting their established band choices.
 
 The top dial-frequency value now includes the MHz unit. **Change target** is
 green whenever it is available. Recent WSJT-X activity reads chronologically
@@ -30,8 +29,8 @@ The portable Windows build starts with `DXAssistant.exe` and does not require a
 separate Python installation. Alternatively, run the supplied Setup executable
 to install DX Assistant for the current Windows user with Start Menu and optional
 desktop shortcuts. Keep `config.json` beside the portable executable so the
-locator, PSK distance, enabled antenna bands, operating frequencies, and
-per-band drive reference can be saved. OmniRig 1.20
+locator, PSK distance, enabled antenna bands, and operating frequencies can be
+saved. OmniRig 1.20
 remains a separate prerequisite and must have Rig 1 configured correctly.
 
 Once WSJT-X status is visible, choose a dwell time in the **Band search** panel
@@ -75,15 +74,12 @@ The same panel shows WSJT-X's current Tx audio offset as a read-only value. The
 offset is not added to VFO B: WSJT-X combines its audio offset with the dial
 frequency and manages split-frequency translation when required.
 
-**Edit max drive** stores a persistent 5-100 W safety-profile value for the
-selected band. In this Beta the value is display/configuration only: it is
-not sent to the radio. CAT access is restricted to verified VFO A/B
-frequency alignment; the application has no PTT, mode, split, or power path.
-The supplied profile uses maximums of 32 W on 40m; 35 W on 30m, 20m, and 17m;
-25 W on 15m; and 22 W on 12m and 10m. A manually selected 22 W radio setting is
-therefore within every configured ceiling. Because OmniRig does not expose the
-actual power through the OmniRig API used here, the operator remains
-responsible for confirming that setting on the radio.
+The band plan intentionally has no power column or power-setting control.
+DX Assistant cannot set or verify the radio's RF power through the OmniRig API
+used here, so displaying a maximum value could imply protection the application
+cannot provide. The operator remains responsible for selecting and confirming a
+safe power setting on the radio. CAT access remains restricted to verified VFO
+A/B frequency alignment; the application has no PTT, mode, split, or power path.
 
 ## PSK Reporter band focus
 

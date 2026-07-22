@@ -23,7 +23,6 @@ from .config import (
     save_band_enabled,
     save_band_frequencies,
     save_band_frequency,
-    save_band_power,
     save_psk_search_area,
     save_target_call,
 )
@@ -72,9 +71,6 @@ class Dashboard:
         }
         self.session_band_enabled = {
             name: band.enabled for name, band in config.bands.items()
-        }
-        self.band_power_watts = {
-            name: band.power_watts for name, band in config.bands.items()
         }
         self.last_packet_utc = None
         self.alarm_active = False
@@ -174,18 +170,16 @@ class Dashboard:
 
         self.bands = ttk.Treeview(
             bands_frame,
-            columns=("band", "enabled", "frequency", "power"),
+            columns=("band", "enabled", "frequency"),
             show="headings",
             height=10,
         )
         self.bands.heading("band", text="Band")
         self.bands.heading("enabled", text="On")
         self.bands.heading("frequency", text="FT8 MHz")
-        self.bands.heading("power", text="Max W")
         self.bands.column("band", width=45, anchor="center")
         self.bands.column("enabled", width=35, anchor="center")
         self.bands.column("frequency", width=75, anchor="e")
-        self.bands.column("power", width=55, anchor="e")
         self.bands.tag_configure("disabled", foreground="#777777")
         self.bands.tag_configure(
             "nonstandard", foreground="#b31412", font=("Segoe UI", 9, "bold")
@@ -310,9 +304,6 @@ class Dashboard:
         self.toggle_band_button = self._action_button(
             band_controls, "Enable / disable", self.toggle_selected_band
         )
-        self.edit_power_button = self._action_button(
-            band_controls, "Edit max drive", self.edit_band_power
-        )
         self.reset_frequencies_button = self._action_button(
             band_controls, "Restore frequencies", self.restore_default_frequencies
         )
@@ -320,8 +311,7 @@ class Dashboard:
         band_controls.columnconfigure(1, weight=1)
         self.edit_frequency_button.grid(row=0, column=0, sticky="ew", padx=(0, 2), pady=(0, 4))
         self.toggle_band_button.grid(row=0, column=1, sticky="ew", padx=(2, 0), pady=(0, 4))
-        self.edit_power_button.grid(row=1, column=0, sticky="ew", padx=(0, 2))
-        self.reset_frequencies_button.grid(row=1, column=1, sticky="ew", padx=(2, 0))
+        self.reset_frequencies_button.grid(row=1, column=0, columnspan=2, sticky="ew")
 
         recent_frame = ttk.LabelFrame(activity_panes, text=f"Recent WSJT-X activity (latest {MAX_RECENT_DECODES})", padding=8)
         target_frame = ttk.LabelFrame(activity_panes, text="Target decodes - retained for this session", padding=8)
@@ -814,57 +804,9 @@ class Dashboard:
         self.status_text.set(f"{band} {state} and saved for the antenna plan")
         self.bands.selection_remove(*selection)
 
-    def edit_band_power(self):
-        if self.machine.current != AppState.STOPPED:
-            return
-        selection = self.bands.selection()
-        if not selection:
-            messagebox.showinfo(
-                "Select a band",
-                "Select a band in the Session band plan first.",
-                parent=self.root,
-            )
-            return
-        band = selection[0]
-        current = self.band_power_watts[band]
-        value = simpledialog.askstring(
-            f"{band} maximum drive",
-            "Enter the maximum-drive reference in watts (5-100).\n\n"
-            "This stores a persistent safety profile only. It is not yet sent to the radio.",
-            initialvalue="" if current is None else str(current),
-            parent=self.root,
-        )
-        if value is None:
-            return
-        try:
-            power_watts = int(value.strip())
-        except ValueError:
-            messagebox.showerror("Invalid power", "Enter a whole number from 5 to 100 watts.", parent=self.root)
-            return
-        if not 5 <= power_watts <= 100:
-            messagebox.showerror("Power outside range", "Maximum-drive reference must be between 5 and 100 watts.", parent=self.root)
-            return
-        previous = self.band_power_watts[band]
-        self.band_power_watts[band] = power_watts
-        try:
-            save_band_power(self.config, band, power_watts)
-        except (OSError, ValueError, json.JSONDecodeError) as error:
-            self.band_power_watts[band] = previous
-            messagebox.showerror(
-                "Could not save power profile",
-                f"The radio was not changed. The profile could not be saved:\n{error}",
-                parent=self.root,
-            )
-            return
-        self._render_band_row(band)
-        self.status_text.set(
-            f"{band} maximum drive saved as {power_watts} W; no command was sent to the radio"
-        )
-
     def _render_band_row(self, name):
         enabled = self.session_band_enabled[name]
         frequency = self.session_band_frequencies[name]
-        power = self.band_power_watts[name]
         nonstandard = not is_standard_ft8_frequency(name, frequency)
         if name == self.current_band:
             if enabled:
@@ -882,7 +824,6 @@ class Dashboard:
                 name,
                 "Yes" if enabled else "No",
                 f"{frequency:.3f}",
-                "--" if power is None else str(power),
             ),
             tags=tags,
         )
@@ -1258,7 +1199,6 @@ class Dashboard:
         for button in (
             self.edit_frequency_button,
             self.toggle_band_button,
-            self.edit_power_button,
             self.reset_frequencies_button,
         ):
             self._set_action_state(

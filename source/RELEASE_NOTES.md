@@ -1,13 +1,33 @@
-# DX Assistant V0.13.0 Beta - 22 July 2026
+# DX Assistant V0.13.1 Beta - 22 July 2026
 
-V0.13 expands the operating band plan and improves the main dashboard workflow
+V0.13.1 removes the reference maximum-power display because DX Assistant cannot
+set or verify the radio's RF power.
+
+## Changed in V0.13.1
+
+- Removed the **Max W** column and **Edit max drive** control from the dashboard.
+- Removed maximum-power values from the supplied configuration and active
+  application model. Legacy `power_watts` entries in an existing `config.json`
+  are safely ignored.
+- Clarified that safe RF power must be selected and confirmed directly by the
+  operator at the radio.
+- The receive-only boundary is unchanged; no power-setting command was added.
+
+## Verification
+
+- 86 automated tests pass, including a regression test confirming that legacy
+  power values are ignored and no power column or control is presented.
+
+## Included from V0.13.0
+
+V0.13 expanded the operating band plan and improved the main dashboard workflow
 without changing the receive-only radio-control boundary.
 
 ## Changed in V0.13.0
 
 - Added 160m at 1.840 MHz, 80m at 3.573 MHz and 6m at 50.313 MHz.
 - The three new bands are disabled by default and have no assumed maximum-drive
-  reference; older saved configurations gain them without losing existing
+  power setting; older saved configurations gain them without losing existing
   frequencies or antenna selections.
 - Added `MHz` to the top monitoring-status frequency value.
 - **Change target** is green whenever it is available while stopped.
@@ -16,7 +36,7 @@ without changing the receive-only radio-control boundary.
 - **Monitor selected band now** clears both the blue row selection and keyboard
   focus after use while preserving the independent green current-band marker.
 
-## Verification
+### V0.13.0 verification
 
 - 87 automated tests pass, including band-plan migration, chronological rolling
   activity, action-state colours, selection/focus cleanup and unchanged static

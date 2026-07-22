@@ -16,7 +16,6 @@ PSK_REPORTER_DISTANCES_KM = (500, 1000, 1500, 2500, 5000)
 class BandConfig:
     enabled: bool
     frequency_mhz: float
-    power_watts: int | None = None
 
 
 @dataclass(frozen=True)
@@ -78,23 +77,14 @@ def load_config(path: Path) -> AppConfig:
     for name in band_names:
         settings = configured_bands.get(name)
         if settings is None:
-            bands[name] = BandConfig(
-                False, STANDARD_FT8_FREQUENCIES_MHZ[name], None
-            )
+            bands[name] = BandConfig(False, STANDARD_FT8_FREQUENCIES_MHZ[name])
             continue
         if not isinstance(settings, dict):
             raise ValueError(f"Band '{name}' must contain settings")
         frequency = settings.get("frequency_mhz")
         if not isinstance(frequency, (int, float)) or frequency <= 0:
             raise ValueError(f"Band '{name}' has an invalid frequency_mhz")
-        power = settings.get("power_watts")
-        if power is not None and (
-            isinstance(power, bool) or not isinstance(power, int) or not 5 <= power <= 100
-        ):
-            raise ValueError(f"Band '{name}' power_watts must be blank or between 5 and 100")
-        bands[name] = BandConfig(
-            bool(settings.get("enabled", False)), float(frequency), power
-        )
+        bands[name] = BandConfig(bool(settings.get("enabled", False)), float(frequency))
 
     log_directory = Path(_require(raw, "log_directory", str))
     if not log_directory.is_absolute():
@@ -126,27 +116,11 @@ def _band_settings_for_update(raw: dict[str, Any], band: str) -> dict[str, Any]:
         bands[band] = {
             "enabled": False,
             "frequency_mhz": standard,
-            "power_watts": None,
         }
     settings = bands[band]
     if not isinstance(settings, dict):
         raise ValueError(f"Band '{band}' must contain settings")
     return settings
-
-
-def save_band_power(config: AppConfig, band: str, power_watts: int) -> None:
-    """Persist an operator safety-profile value; this never controls a radio."""
-
-    if not 5 <= power_watts <= 100:
-        raise ValueError("Maximum-drive reference must be between 5 and 100 watts")
-    if config.source_path is None:
-        raise ValueError("Configuration location is unavailable")
-    path = config.source_path
-    raw = json.loads(path.read_text(encoding="utf-8"))
-    _band_settings_for_update(raw, band)["power_watts"] = power_watts
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(raw, indent=2) + "\n", encoding="utf-8")
-    temporary.replace(path)
 
 
 def save_target_call(config: AppConfig, target_call: str) -> None:

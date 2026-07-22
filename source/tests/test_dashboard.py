@@ -219,14 +219,10 @@ class DashboardTests(unittest.TestCase):
         self.assertEqual(self.dashboard.session_band_frequencies["20m"], 14.096)
         self.assertEqual(self.dashboard.bands.item("20m")["values"][2], "14.096")
 
-    def test_operator_can_store_persistent_band_drive_profile(self):
-        self.dashboard.bands.selection_set("20m")
-        with patch("dxassistant.dashboard.simpledialog.askstring", return_value="25"):
-            with patch("dxassistant.dashboard.save_band_power") as save:
-                self.dashboard.edit_band_power()
-        save.assert_called_once_with(self.dashboard.config, "20m", 25)
-        self.assertEqual(self.dashboard.band_power_watts["20m"], 25)
-        self.assertEqual(str(self.dashboard.bands.item("20m")["values"][3]), "25")
+    def test_band_plan_has_no_misleading_power_column_or_control(self):
+        self.assertEqual(tuple(self.dashboard.bands.cget("columns")), ("band", "enabled", "frequency"))
+        self.assertFalse(hasattr(self.dashboard, "edit_power_button"))
+        self.assertFalse(hasattr(self.dashboard, "band_power_watts"))
 
     def test_top_status_frequency_uses_three_decimal_places(self):
         packet = Status("TEST", 3, 14_074_000, "FT8", "", False, False, True)

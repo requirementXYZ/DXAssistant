@@ -4,34 +4,42 @@ Last updated: 22 July 2026
 
 ## Current release
 
-The current release is **DX Assistant V0.13.0 Beta**.
+The current release is **DX Assistant V0.13.1 Beta**.
 
-- Portable ZIP: `releases/DXAssistant-v0.13.0-beta-Windows-portable.zip`
-- Portable folder: `releases/DXAssistant-v0.13.0-beta-Windows-portable/`
-- Per-user installer: `releases/DXAssistant-v0.13.0-beta-Setup.exe`
-- User manual: `documentation/DXAssistant-v0.13.0-beta-User-Manual.docx`
-- PDF manual: `documentation/DXAssistant-v0.13.0-beta-User-Manual.pdf`
+- Portable ZIP: `releases/DXAssistant-v0.13.1-beta-Windows-portable.zip`
+- Portable folder: `releases/DXAssistant-v0.13.1-beta-Windows-portable/`
+- Per-user installer: `releases/DXAssistant-v0.13.1-beta-Setup.exe`
+- User manual: `documentation/DXAssistant-v0.13.1-beta-User-Manual.docx`
+- PDF manual: `documentation/DXAssistant-v0.13.1-beta-User-Manual.pdf`
 - Colleague test guide: `source/COLLEAGUE_TEST_GUIDE.md`
 - Portable ZIP SHA-256:
-  `750700C080D66869B59D67877F2124C2E61749A53F7D2BAE37CAD2C4FD4F1B0E`
+  `563C53629B5FDFD0A6171D52728F72EDF3C3A5F4DC8F564D7A891EE4A4A1CC3A`
 - Installer SHA-256:
-  `B0E40C555438D9F860F95289B06886CBC48362EAD1CE9B65BE4D8A55C22D69BE`
+  `AD7F2D9801A61BE3BEB74137F0B745CDC97D70D11E3898F3D646141A39BDBBB0`
 
-V0.13.0 passed 87 automated tests, source, portable and installed no-radio smoke tests,
+V0.13.1 passed 86 automated tests, source, portable and installed no-radio smoke tests,
 a hidden dashboard startup test, 956-entry archive verification, and a silent
 install/smoke/uninstall test that confirmed `config.json` is preserved.
 
 ## Active development
 
 The authoritative development tree is `source/`. It currently reports version
-`0.13.0-beta` and matches the packaged release.
+`0.13.1-beta` and matches the packaged release.
 
-Implemented for V0.13.0:
+Implemented for V0.13.1:
+
+- Removed the Max W column, Edit max drive control, active maximum-power model,
+  and supplied configuration values because DX Assistant cannot set or verify
+  RF power. Legacy `power_watts` values are ignored for compatibility.
+- Operator guidance now requires safe RF power to be selected and confirmed at
+  the radio.
+
+Retained from V0.13.0:
 
 - Added standard 160m (1.840 MHz), 80m (3.573 MHz), and 6m (50.313 MHz)
-  entries. They default to disabled with blank maximum-drive references.
+  entries. They default to disabled pending antenna confirmation.
 - Older saved band plans gain the new rows without overwriting existing
-  antenna selections, frequencies, or drive references.
+  antenna selections or frequencies.
 - Added the MHz unit to the top dial-frequency value and green availability
   styling to **Change target**.
 - Recent activity now runs oldest-to-newest with the latest decode visible at
@@ -59,7 +67,7 @@ Retained from V0.12.0:
   dual-VFO or safety-state capability.
 - A controlled colleague test guide for experimental radio validation.
 
-Verification baseline: **87 automated tests passing** on 22 July 2026.
+Verification baseline: **86 automated tests passing** on 22 July 2026.
 
 ## Proven operating environment (previous release)
 
@@ -77,8 +85,8 @@ Verification baseline: **87 automated tests passing** on 22 July 2026.
 - Alert acknowledgement separated from explicit search resume.
 - Guarded enabled-band round-robin hopping with selectable dwell.
 - Operator-selected immediate-band monitoring.
-- Persistent antenna band enablement, non-standard frequencies, drive reference,
-  station locator, PSK Reporter radius, and target callsign.
+- Persistent antenna band enablement, non-standard frequencies, station locator,
+  PSK Reporter radius, and target callsign.
 - Standard 160m through 6m plan with upgrade-safe addition of missing bands.
 - PSK Reporter band focus with automatic full-sweep fallback.
 - Configure-only preparation of DX Call/Grid in WSJT-X.
@@ -92,8 +100,8 @@ Verification baseline: **87 automated tests passing** on 22 July 2026.
 - A positive compatibility check is a candidate result, not proof of correct
   hardware/profile behaviour. Each radio needs the controlled live test in
   `COLLEAGUE_TEST_GUIDE.md` before operational reliance.
-- The maximum-drive values are reference/display values only. DX Assistant does
-  not set or verify RF power.
+- DX Assistant has no RF-power display or setting control. Safe power must be
+  selected and confirmed directly by the operator at the radio.
 - The installer is unsigned, so Windows may display an unknown-publisher warning.
 - PSK Reporter is the sole external evidence source. Cluster integration and any
   transmit automation are outside the current scope.
