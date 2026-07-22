@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .bands import STANDARD_FT8_FREQUENCIES_MHZ
+
 
 PSK_REPORTER_DISTANCES_KM = (500, 1000, 1500, 2500, 5000)
 
@@ -69,8 +71,17 @@ def load_config(path: Path) -> AppConfig:
             "psk_reporter_distance_km must be 500, 1000, 1500, 2500, or 5000"
         )
 
+    configured_bands = _require(raw, "bands", dict)
+    band_names = list(STANDARD_FT8_FREQUENCIES_MHZ)
+    band_names.extend(name for name in configured_bands if name not in band_names)
     bands: dict[str, BandConfig] = {}
-    for name, settings in _require(raw, "bands", dict).items():
+    for name in band_names:
+        settings = configured_bands.get(name)
+        if settings is None:
+            bands[name] = BandConfig(
+                False, STANDARD_FT8_FREQUENCIES_MHZ[name], None
+            )
+            continue
         if not isinstance(settings, dict):
             raise ValueError(f"Band '{name}' must contain settings")
         frequency = settings.get("frequency_mhz")
@@ -104,6 +115,25 @@ def load_config(path: Path) -> AppConfig:
     )
 
 
+def _band_settings_for_update(raw: dict[str, Any], band: str) -> dict[str, Any]:
+    bands = raw.get("bands")
+    if not isinstance(bands, dict):
+        raise ValueError("Configuration item 'bands' must be dict")
+    if band not in bands:
+        standard = STANDARD_FT8_FREQUENCIES_MHZ.get(band)
+        if standard is None:
+            raise ValueError(f"Unknown band: {band}")
+        bands[band] = {
+            "enabled": False,
+            "frequency_mhz": standard,
+            "power_watts": None,
+        }
+    settings = bands[band]
+    if not isinstance(settings, dict):
+        raise ValueError(f"Band '{band}' must contain settings")
+    return settings
+
+
 def save_band_power(config: AppConfig, band: str, power_watts: int) -> None:
     """Persist an operator safety-profile value; this never controls a radio."""
 
@@ -113,9 +143,7 @@ def save_band_power(config: AppConfig, band: str, power_watts: int) -> None:
         raise ValueError("Configuration location is unavailable")
     path = config.source_path
     raw = json.loads(path.read_text(encoding="utf-8"))
-    if band not in raw.get("bands", {}):
-        raise ValueError(f"Unknown band: {band}")
-    raw["bands"][band]["power_watts"] = power_watts
+    _band_settings_for_update(raw, band)["power_watts"] = power_watts
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(json.dumps(raw, indent=2) + "\n", encoding="utf-8")
     temporary.replace(path)
@@ -150,9 +178,7 @@ def save_band_enabled(config: AppConfig, band: str, enabled: bool) -> None:
         raise ValueError("Configuration location is unavailable")
     path = config.source_path
     raw = json.loads(path.read_text(encoding="utf-8"))
-    if band not in raw.get("bands", {}):
-        raise ValueError(f"Unknown band: {band}")
-    raw["bands"][band]["enabled"] = bool(enabled)
+    _band_settings_for_update(raw, band)["enabled"] = bool(enabled)
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(json.dumps(raw, indent=2) + "\n", encoding="utf-8")
     temporary.replace(path)
@@ -165,9 +191,9 @@ def save_band_frequency(config: AppConfig, band: str, frequency_mhz: float) -> N
         raise ValueError("Configuration location is unavailable")
     path = config.source_path
     raw = json.loads(path.read_text(encoding="utf-8"))
-    if band not in raw.get("bands", {}):
-        raise ValueError(f"Unknown band: {band}")
-    raw["bands"][band]["frequency_mhz"] = round(float(frequency_mhz), 3)
+    _band_settings_for_update(raw, band)["frequency_mhz"] = round(
+        float(frequency_mhz), 3
+    )
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(json.dumps(raw, indent=2) + "\n", encoding="utf-8")
     temporary.replace(path)
@@ -180,11 +206,10 @@ def save_band_frequencies(config: AppConfig, frequencies_mhz: dict[str, float]) 
         raise ValueError("Configuration location is unavailable")
     path = config.source_path
     raw = json.loads(path.read_text(encoding="utf-8"))
-    bands = raw.get("bands", {})
     for band, frequency_mhz in frequencies_mhz.items():
-        if band not in bands:
-            raise ValueError(f"Unknown band: {band}")
-        bands[band]["frequency_mhz"] = round(float(frequency_mhz), 3)
+        _band_settings_for_update(raw, band)["frequency_mhz"] = round(
+            float(frequency_mhz), 3
+        )
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(json.dumps(raw, indent=2) + "\n", encoding="utf-8")
     temporary.replace(path)

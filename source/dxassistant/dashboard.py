@@ -139,7 +139,9 @@ class Dashboard:
             controls, "Start monitoring", self.start
         )
         self.stop_button = self._action_button(controls, "Stop", self.stop)
-        self.target_button = ttk.Button(controls, text="Change target", command=self.change_target)
+        self.target_button = self._action_button(
+            controls, "Change target", self.change_target
+        )
         self.ack_button = self._action_button(
             controls, "Acknowledge target alert", self.acknowledge
         )
@@ -174,7 +176,7 @@ class Dashboard:
             bands_frame,
             columns=("band", "enabled", "frequency", "power"),
             show="headings",
-            height=9,
+            height=10,
         )
         self.bands.heading("band", text="Band")
         self.bands.heading("enabled", text="On")
@@ -533,6 +535,7 @@ class Dashboard:
         self.search = SearchSession(int(self.dwell_value.get()))
         self.search.begin()
         self.bands.selection_remove(*selection)
+        self.bands.focus("")
         self._start_tune(band)
 
     def _start_tune(self, band):
@@ -1160,7 +1163,9 @@ class Dashboard:
             self.status_text.set("WSJT-X heartbeat received")
         elif isinstance(packet, Status):
             self.wsjtx_status_available = True
-            self.values["frequency"].set(f"{packet.dial_frequency_hz / 1_000_000:.3f}")
+            self.values["frequency"].set(
+                f"{packet.dial_frequency_hz / 1_000_000:.3f} MHz"
+            )
             self.values["mode"].set(packet.mode or "-")
             if packet.tx_df_hz is None:
                 self.tx_offset_text.set("WSJT-X Tx offset: unavailable")
@@ -1187,11 +1192,14 @@ class Dashboard:
             tag = ("target",) if result.target_found else ()
             band = band_for_frequency(self.engine.state.dial_frequency_hz)
             values = (packet.time, band, packet.snr, packet.audio_frequency_hz, packet.message)
-            self.recent_decodes.insert("", 0, values=values, tags=tag)
+            recent_item = self.recent_decodes.insert(
+                "", "end", values=values, tags=tag
+            )
             recent_items = self.recent_decodes.get_children()
             while len(recent_items) > MAX_RECENT_DECODES:
-                self.recent_decodes.delete(recent_items[-1])
+                self.recent_decodes.delete(recent_items[0])
                 recent_items = self.recent_decodes.get_children()
+            self.recent_decodes.see(recent_item)
             self.logger.write(packet, self.engine.state.dial_frequency_hz, result.target_found)
             if result.target_found:
                 if result.transmitting_grid:
@@ -1242,7 +1250,11 @@ class Dashboard:
             self.machine.current != AppState.STOPPED and not self.tune_in_progress,
             BUTTON_AMBER,
         )
-        self.target_button.configure(state="normal" if self.machine.current == AppState.STOPPED else "disabled")
+        self._set_action_state(
+            self.target_button,
+            self.machine.current == AppState.STOPPED,
+            BUTTON_GREEN,
+        )
         for button in (
             self.edit_frequency_button,
             self.toggle_band_button,

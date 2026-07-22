@@ -159,6 +159,9 @@ class DashboardTests(unittest.TestCase):
             self.dashboard._handle_packet(packet)
         self.assertEqual(len(self.dashboard.recent_decodes.get_children()), MAX_RECENT_DECODES)
         self.assertEqual(len(self.dashboard.target_decodes.get_children()), 0)
+        items = self.dashboard.recent_decodes.get_children()
+        self.assertIn("G7ABC", self.dashboard.recent_decodes.item(items[0])["values"][4])
+        self.assertIn("G18ABC", self.dashboard.recent_decodes.item(items[-1])["values"][4])
 
     def test_clear_displays_preserves_counters(self):
         packet = Decode("TEST", 3, True, "12:00:00", -14, 0.1, 1300, "FT8", "CQ T22TT RI49")
@@ -228,7 +231,7 @@ class DashboardTests(unittest.TestCase):
     def test_top_status_frequency_uses_three_decimal_places(self):
         packet = Status("TEST", 3, 14_074_000, "FT8", "", False, False, True)
         self.dashboard._handle_packet(packet)
-        self.assertEqual(self.dashboard.values["frequency"].get(), "14.074")
+        self.assertEqual(self.dashboard.values["frequency"].get(), "14.074 MHz")
 
     def test_status_displays_wsjtx_tx_audio_offset(self):
         packet = Status(
@@ -310,6 +313,7 @@ class DashboardTests(unittest.TestCase):
     def test_primary_action_colours_follow_available_state(self):
         self.dashboard._update_controls()
         self.assertEqual(self.dashboard.start_button.cget("background"), BUTTON_GREEN)
+        self.assertEqual(self.dashboard.target_button.cget("background"), BUTTON_GREEN)
         self.assertEqual(self.dashboard.stop_button.cget("background"), BUTTON_DISABLED)
         self.assertEqual(
             self.dashboard.edit_frequency_button.cget("background"), BUTTON_AMBER
@@ -319,6 +323,7 @@ class DashboardTests(unittest.TestCase):
         self.dashboard.engine.state.dial_frequency_hz = 14_074_000
         self.dashboard._update_controls()
         self.assertEqual(self.dashboard.start_button.cget("background"), BUTTON_DISABLED)
+        self.assertEqual(self.dashboard.target_button.cget("background"), BUTTON_DISABLED)
         self.assertEqual(self.dashboard.stop_button.cget("background"), BUTTON_AMBER)
         self.assertEqual(self.dashboard.search_button.cget("background"), BUTTON_GREEN)
 
@@ -351,11 +356,13 @@ class DashboardTests(unittest.TestCase):
         self.dashboard.machine.transition(AppState.MONITORING, "test")
         self.dashboard.engine.state.dial_frequency_hz = 14_074_000
         self.dashboard.bands.selection_set("17m")
+        self.dashboard.bands.focus("17m")
         with patch.object(self.dashboard, "_start_tune") as tune:
             self.dashboard.monitor_selected_band()
         tune.assert_called_once_with("17m")
         self.assertEqual(self.dashboard.search.state, SearchState.STARTING)
         self.assertEqual(self.dashboard.bands.selection(), ())
+        self.assertEqual(self.dashboard.bands.focus(), "")
 
     def test_disabled_band_cannot_be_monitored_immediately(self):
         self.dashboard.machine.transition(AppState.STARTING, "test")

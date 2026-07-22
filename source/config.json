@@ -10,12 +10,15 @@
   "psk_reporter_distance_km": 2500,
   "log_directory": "logs",
   "bands": {
+    "160m": {"enabled": false, "frequency_mhz": 1.840, "power_watts": null},
+    "80m": {"enabled": false, "frequency_mhz": 3.573, "power_watts": null},
     "40m": {"enabled": true, "frequency_mhz": 7.074, "power_watts": 32},
     "30m": {"enabled": true, "frequency_mhz": 10.136, "power_watts": 35},
     "20m": {"enabled": true, "frequency_mhz": 14.074, "power_watts": 35},
     "17m": {"enabled": true, "frequency_mhz": 18.100, "power_watts": 35},
     "15m": {"enabled": true, "frequency_mhz": 21.074, "power_watts": 25},
     "12m": {"enabled": true, "frequency_mhz": 24.915, "power_watts": 22},
-    "10m": {"enabled": true, "frequency_mhz": 28.074, "power_watts": 22}
+    "10m": {"enabled": true, "frequency_mhz": 28.074, "power_watts": 22},
+    "6m": {"enabled": false, "frequency_mhz": 50.313, "power_watts": null}
   }
 }

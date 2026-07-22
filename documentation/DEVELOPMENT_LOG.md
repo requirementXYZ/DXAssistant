@@ -3,6 +3,60 @@
 This is the chronological record of product decisions, implementation, tests,
 packaging, and operator validation. Add new entries at the top.
 
+## 22 July 2026 - V0.13.0 band-plan and dashboard release
+
+User need:
+
+- Add 160m, 80m and 6m, show the MHz unit in the top status, improve the
+  Change target cue, reverse recent-decode flow, and clear selected-band
+  highlighting after immediate monitoring.
+
+Implementation:
+
+- Added 160m at 1.840 MHz, 80m at 3.573 MHz and 6m at 50.313 MHz. The new
+  bands default to disabled with blank maximum-drive references so antenna and
+  amplifier suitability remain explicit operator decisions.
+- Added upgrade-safe in-memory defaults and save-time persistence so old
+  `config.json` files gain missing standard bands without changing established
+  settings.
+- Added `MHz` to the top frequency value and green availability styling to
+  **Change target**.
+- Changed Recent WSJT-X activity to chronological top-to-bottom display,
+  retaining the latest 12 rows and automatically showing the newest at the
+  bottom.
+- Cleared Treeview selection and keyboard focus after **Monitor selected band
+  now**, without removing the separate green current-band state.
+- Updated README, release notes, installer metadata and the visually checked
+  11-page DOCX/PDF user manual.
+
+Verification:
+
+- 87 automated tests passed, including unchanged static radio-control safety
+  tests.
+- Source and portable no-radio smoke tests returned exit code 0; a four-second
+  hidden packaged-dashboard startup remained healthy.
+- The 956-entry ZIP contains the executable, bundled bridge/runtime,
+  configuration, release notes, README, colleague guide, and DOCX/PDF manuals,
+  with no runtime logs or enclosing duplicate folder.
+- Silent isolated install, installed no-radio smoke and uninstall returned exit
+  code 0; `config.json` remained after uninstall.
+- Microsoft Word exported the manual to PDF; all 11 rendered pages were
+  inspected with no clipping, overlap, broken tables or missing content.
+
+Packages:
+
+- `releases/DXAssistant-v0.13.0-beta-Windows-portable.zip`
+  - SHA-256: `750700C080D66869B59D67877F2124C2E61749A53F7D2BAE37CAD2C4FD4F1B0E`
+- `releases/DXAssistant-v0.13.0-beta-Setup.exe`
+  - SHA-256: `B0E40C555438D9F860F95289B06886CBC48362EAD1CE9B65BE4D8A55C22D69BE`
+
+Remaining live test:
+
+- Automated verification did not tune or transmit with a live radio. The
+  operator should confirm the three new rows, top-line MHz suffix, green Change
+  target button, upward recent-activity flow and cleared blue selection during
+  normal receive-only use before enabling 160m, 80m or 6m.
+
 ## 21 July 2026 - GitHub repository established and synchronized
 
 - Established `https://github.com/requirementXYZ/DXAssistant` as the canonical

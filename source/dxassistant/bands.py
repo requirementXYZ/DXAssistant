@@ -18,6 +18,8 @@ BAND_RANGES_HZ = (
 )
 
 STANDARD_FT8_FREQUENCIES_MHZ = {
+    "160m": 1.840,
+    "80m": 3.573,
     "40m": 7.074,
     "30m": 10.136,
     "20m": 14.074,
@@ -25,6 +27,7 @@ STANDARD_FT8_FREQUENCIES_MHZ = {
     "15m": 21.074,
     "12m": 24.915,
     "10m": 28.074,
+    "6m": 50.313,
 }
 
 

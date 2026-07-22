@@ -1,4 +1,32 @@
-# DX Assistant V0.12.0 Experimental Multi-Radio Beta - 20 July 2026
+# DX Assistant V0.13.0 Beta - 22 July 2026
+
+V0.13 expands the operating band plan and improves the main dashboard workflow
+without changing the receive-only radio-control boundary.
+
+## Changed in V0.13.0
+
+- Added 160m at 1.840 MHz, 80m at 3.573 MHz and 6m at 50.313 MHz.
+- The three new bands are disabled by default and have no assumed maximum-drive
+  reference; older saved configurations gain them without losing existing
+  frequencies or antenna selections.
+- Added `MHz` to the top monitoring-status frequency value.
+- **Change target** is green whenever it is available while stopped.
+- **Recent WSJT-X activity** now scrolls upward in chronological order, with the
+  latest decode at the bottom and automatically kept visible.
+- **Monitor selected band now** clears both the blue row selection and keyboard
+  focus after use while preserving the independent green current-band marker.
+
+## Verification
+
+- 87 automated tests pass, including band-plan migration, chronological rolling
+  activity, action-state colours, selection/focus cleanup and unchanged static
+  transmission-safety checks.
+
+## Included from V0.12.0
+
+DX Assistant V0.12.0 introduced experimental multi-radio capability gating.
+
+## Changed in V0.12.0
 
 V0.12 removes the FTDX101D model-name gate and uses documented OmniRig
 capabilities to decide whether configured Rig 1 can participate in the existing

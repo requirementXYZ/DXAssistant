@@ -1,9 +1,23 @@
-# DX Assistant V0.12.0 Experimental Multi-Radio Beta
+# DX Assistant V0.13.0 Beta
 
-This Beta adds capability-gated OmniRig support so colleagues can evaluate
-different radios without DX Assistant containing a Yaesu model-name check.
+This Beta extends the session plan to 160m, 80m and 6m and improves the main
+operating display while retaining V0.12's capability-gated OmniRig support.
 The core safety boundary is unchanged: DX Assistant never keys the transmitter
 and never sets radio mode, split, power, or PTT.
+
+## V0.13 operating-display changes
+
+The standard band plan now includes 160m at 1.840 MHz, 80m at 3.573 MHz and 6m
+at 50.313 MHz. These three bands start disabled and with no assumed maximum-drive
+reference so the connected antenna and amplifier limits remain an explicit
+operator decision. Existing saved configurations gain the three rows without
+overwriting their established band choices.
+
+The top dial-frequency value now includes the MHz unit. **Change target** is
+green whenever it is available. Recent WSJT-X activity reads chronologically
+from top to bottom, with the newest decode at the bottom and kept in view.
+After **Monitor selected band now**, the blue selection/focus highlight is
+cleared; the separate green current-band indication remains.
 
 ## Start the dashboard
 
@@ -147,7 +161,7 @@ band remain in the target panel but do not keep raising new alerts.
 To move immediately to a particular enabled band, select its row and choose
 **Monitor selected band now**. This is available while WSJT-X is in receive and
 monitoring is active. It safely aligns both VFOs, starts a fresh dwell period on
-the selected band, and then continues the normal round-robin search. It can be
+the selected band, clears the blue row selection, and then continues the normal round-robin search. It can be
 used when the search is stopped, paused, or already running.
 
 ## Test without the radio
@@ -175,7 +189,7 @@ travel-aware PSK Reporter band focus with full-sweep fallback, target hold,
 Configure-only WSJT-X DX preparation, and explicit operator-control
 handover/resume.
 
-Experimental scope: any radio/profile combination whose OmniRig API advertises
+Experimental scope inherited from V0.12: any radio/profile combination whose OmniRig API advertises
 the complete required capability set. A positive check is a candidate result,
 not proof of correct rig-profile behaviour; follow `COLLEAGUE_TEST_GUIDE.md`
 with the amplifier in standby before relying on band searching. Single-VFO or

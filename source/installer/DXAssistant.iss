@@ -8,13 +8,13 @@
 [Setup]
 AppId={{A51F70DA-EF16-48CE-B6EB-A087139AA4B3}
 AppName=DX Assistant
-AppVersion=0.12.0-beta
+AppVersion=0.13.0-beta
 AppPublisher=DX Assistant project
 DefaultDirName={localappdata}\Programs\DX Assistant
 DefaultGroupName=DX Assistant
 PrivilegesRequired=lowest
 OutputDir={#OutputDir}
-OutputBaseFilename=DXAssistant-v0.12.0-beta-Setup
+OutputBaseFilename=DXAssistant-v0.13.0-beta-Setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -29,13 +29,13 @@ Source: "{#SourceDir}\_internal\*"; DestDir: "{app}\_internal"; Flags: ignorever
 Source: "{#SourceDir}\config.json"; DestDir: "{app}"; Flags: onlyifdoesntexist uninsneveruninstall
 Source: "{#SourceDir}\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceDir}\RELEASE_NOTES.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\DXAssistant-v0.12.0-beta-User-Manual.docx"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\DXAssistant-v0.12.0-beta-User-Manual.pdf"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceDir}\DXAssistant-v0.13.0-beta-User-Manual.docx"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceDir}\DXAssistant-v0.13.0-beta-User-Manual.pdf"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceDir}\COLLEAGUE_TEST_GUIDE.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\DX Assistant"; Filename: "{app}\DXAssistant.exe"; WorkingDir: "{app}"
-Name: "{group}\DX Assistant User Manual"; Filename: "{app}\DXAssistant-v0.12.0-beta-User-Manual.pdf"
+Name: "{group}\DX Assistant User Manual"; Filename: "{app}\DXAssistant-v0.13.0-beta-User-Manual.pdf"
 Name: "{autodesktop}\DX Assistant"; Filename: "{app}\DXAssistant.exe"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Tasks]

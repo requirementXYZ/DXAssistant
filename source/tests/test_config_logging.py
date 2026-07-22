@@ -33,6 +33,29 @@ class ConfigAndLoggingTests(unittest.TestCase):
             self.assertEqual(config.log_directory, path.parent / "logs")
             self.assertEqual(config.station_locator, "JO03")
             self.assertEqual(config.psk_reporter_distance_km, 2500)
+            self.assertFalse(config.bands["160m"].enabled)
+            self.assertEqual(config.bands["160m"].frequency_mhz, 1.840)
+            self.assertFalse(config.bands["80m"].enabled)
+            self.assertEqual(config.bands["80m"].frequency_mhz, 3.573)
+            self.assertFalse(config.bands["6m"].enabled)
+            self.assertEqual(config.bands["6m"].frequency_mhz, 50.313)
+
+    def test_new_standard_band_can_be_saved_into_an_older_band_plan(self):
+        raw = {
+            "target_call": "T22TT", "udp_host": "127.0.0.1", "udp_port": 2237,
+            "alarm_enabled": True, "heartbeat_timeout_seconds": 15,
+            "log_directory": "logs",
+            "bands": {"20m": {"enabled": True, "frequency_mhz": 14.074}},
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "config.json"
+            path.write_text(json.dumps(raw), encoding="utf-8")
+            config = load_config(path)
+            save_band_enabled(config, "80m", True)
+            saved = json.loads(path.read_text(encoding="utf-8"))
+            self.assertTrue(saved["bands"]["80m"]["enabled"])
+            self.assertEqual(saved["bands"]["80m"]["frequency_mhz"], 3.573)
+            self.assertIsNone(saved["bands"]["80m"]["power_watts"])
 
     def test_logs_decode(self):
         packet = Decode("WSJT-X", 3, True, "12:00:00", -8, 0.1, 1000, "FT8", "CQ T22TT")

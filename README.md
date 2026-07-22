@@ -14,7 +14,7 @@ station, not from a remote control or autonomous transmit path. It never keys
 the radio, never initiates a reply, and never takes control of operating
 decisions; the operator remains fully in control at all times.
 
-The current release is **V0.12.0 Experimental Multi-Radio Beta**. Radio support
+The current release is **V0.13.0 Beta**. Radio support
 is capability-gated rather than model-gated: an OmniRig profile must expose the
 required dual-VFO frequency and safety-state features, and every new radio
 still requires the controlled physical validation described in the colleague
@@ -24,7 +24,7 @@ guide.
 
 ### Windows installer
 
-1. Download `DXAssistant-v0.12.0-beta-Setup.exe` from the current release.
+1. Download `DXAssistant-v0.13.0-beta-Setup.exe` from the current release.
 2. Close any earlier DX Assistant instance.
 3. Run the installer. It is currently unsigned, so Windows may show an
    unknown-publisher warning; verify that the file came from this repository.
@@ -34,7 +34,7 @@ guide.
 
 ### Portable package
 
-1. Download `DXAssistant-v0.12.0-beta-Windows-portable.zip` from the current
+1. Download `DXAssistant-v0.13.0-beta-Windows-portable.zip` from the current
    release.
 2. Select **Extract All**. Do not run the application inside the ZIP preview.
 3. Keep `DXAssistant.exe`, `config.json`, and the complete `_internal` folder
@@ -72,7 +72,7 @@ guide.
 Before testing an unvalidated radio, follow
 [`source/COLLEAGUE_TEST_GUIDE.md`](source/COLLEAGUE_TEST_GUIDE.md) with the
 amplifier in standby. The full operating guide is available in
-[`documentation/DXAssistant-v0.12.0-beta-User-Manual.pdf`](documentation/DXAssistant-v0.12.0-beta-User-Manual.pdf).
+[`documentation/DXAssistant-v0.13.0-beta-User-Manual.pdf`](documentation/DXAssistant-v0.13.0-beta-User-Manual.pdf).
 
 ## Project layout
 
@@ -87,10 +87,12 @@ amplifier in standby. The full operating guide is available in
 
 ## Current positions
 
-- Latest packaged release: V0.12.0 Experimental Multi-Radio Beta.
-- Active development source: `source/` at version `0.12.0-beta`.
+- Latest packaged release: V0.13.0 Beta.
+- Active development source: `source/` at version `0.13.0-beta`.
 - OmniRig integration is capability-gated and contains no radio-model allow-list.
-- Automated test baseline: 85 passing tests as of 20 July 2026.
+- Standard session plan: 160m through 6m, with 160m, 80m and 6m disabled by
+  default pending antenna and amplifier configuration.
+- Automated test baseline: 87 passing tests as of 22 July 2026.
 - Canonical repository: `https://github.com/requirementXYZ/DXAssistant`.
 
 See `documentation/PROJECT_STATUS.md` for the current product state and

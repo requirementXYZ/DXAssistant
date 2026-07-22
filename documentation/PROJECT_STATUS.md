@@ -1,32 +1,45 @@
 # DX Assistant project status
 
-Last updated: 20 July 2026
+Last updated: 22 July 2026
 
 ## Current release
 
-The release being packaged is **DX Assistant V0.12.0 Experimental Multi-Radio Beta**.
+The current release is **DX Assistant V0.13.0 Beta**.
 
-- Portable ZIP: `releases/DXAssistant-v0.12.0-beta-Windows-portable.zip`
-- Portable folder: `releases/DXAssistant-v0.12.0-beta-Windows-portable/`
-- Per-user installer: `releases/DXAssistant-v0.12.0-beta-Setup.exe`
-- User manual: `documentation/DXAssistant-v0.12.0-beta-User-Manual.docx`
-- PDF manual: `documentation/DXAssistant-v0.12.0-beta-User-Manual.pdf`
+- Portable ZIP: `releases/DXAssistant-v0.13.0-beta-Windows-portable.zip`
+- Portable folder: `releases/DXAssistant-v0.13.0-beta-Windows-portable/`
+- Per-user installer: `releases/DXAssistant-v0.13.0-beta-Setup.exe`
+- User manual: `documentation/DXAssistant-v0.13.0-beta-User-Manual.docx`
+- PDF manual: `documentation/DXAssistant-v0.13.0-beta-User-Manual.pdf`
 - Colleague test guide: `source/COLLEAGUE_TEST_GUIDE.md`
 - Portable ZIP SHA-256:
-  `ED544B1E08FA9DEB6417295BD3A0D9FE6025596BCBEC990C918A12590B24A053`
+  `750700C080D66869B59D67877F2124C2E61749A53F7D2BAE37CAD2C4FD4F1B0E`
 - Installer SHA-256:
-  `4E67EE128FFF5D6A9C01A390FE3D3199B45903E42E0D84E7250247A4D64E9C3B`
+  `B0E40C555438D9F860F95289B06886CBC48362EAD1CE9B65BE4D8A55C22D69BE`
 
-V0.12.0 passed 85 automated tests, portable and installed no-radio smoke tests,
-a hidden dashboard startup test, 957-entry archive verification, and a silent
+V0.13.0 passed 87 automated tests, source, portable and installed no-radio smoke tests,
+a hidden dashboard startup test, 956-entry archive verification, and a silent
 install/smoke/uninstall test that confirmed `config.json` is preserved.
 
 ## Active development
 
 The authoritative development tree is `source/`. It currently reports version
-`0.12.0-beta` and matches the packaged release.
+`0.13.0-beta` and matches the packaged release.
 
-Implemented for V0.12.0:
+Implemented for V0.13.0:
+
+- Added standard 160m (1.840 MHz), 80m (3.573 MHz), and 6m (50.313 MHz)
+  entries. They default to disabled with blank maximum-drive references.
+- Older saved band plans gain the new rows without overwriting existing
+  antenna selections, frequencies, or drive references.
+- Added the MHz unit to the top dial-frequency value and green availability
+  styling to **Change target**.
+- Recent activity now runs oldest-to-newest with the latest decode visible at
+  the bottom.
+- Immediate selected-band monitoring clears blue selection and keyboard focus
+  while retaining the green current-band marker.
+
+Retained from V0.12.0:
 
 - The selected target callsign is saved immediately to `config.json` when
   **Change target** succeeds.
@@ -46,7 +59,7 @@ Implemented for V0.12.0:
   dual-VFO or safety-state capability.
 - A controlled colleague test guide for experimental radio validation.
 
-Verification baseline: **85 automated tests passing** on 20 July 2026.
+Verification baseline: **87 automated tests passing** on 22 July 2026.
 
 ## Proven operating environment (previous release)
 
@@ -65,7 +78,8 @@ Verification baseline: **85 automated tests passing** on 20 July 2026.
 - Guarded enabled-band round-robin hopping with selectable dwell.
 - Operator-selected immediate-band monitoring.
 - Persistent antenna band enablement, non-standard frequencies, drive reference,
-  station locator, PSK Reporter radius, and next-release target callsign.
+  station locator, PSK Reporter radius, and target callsign.
+- Standard 160m through 6m plan with upgrade-safe addition of missing bands.
 - PSK Reporter band focus with automatic full-sweep fallback.
 - Configure-only preparation of DX Call/Grid in WSJT-X.
 - Portable Windows executable with bundled Python runtime.
@@ -89,7 +103,7 @@ Verification baseline: **85 automated tests passing** on 20 July 2026.
 - Incorporate findings from the V0.11 operator acceptance and endurance test.
 - Collect colleague results and document profiles that pass physical validation.
 - Consider a future explicitly designed strategy for radios that do not expose
-  the required dual-VFO state; V0.12 fails closed for those profiles.
+  the required dual-VFO state; V0.13 fails closed for those profiles.
 - Consider code signing only if distribution expands beyond private Beta use.
 
 The consolidated conversation-to-development comparison is maintained in
