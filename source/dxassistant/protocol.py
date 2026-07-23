@@ -149,12 +149,15 @@ def format_time(milliseconds: int) -> str:
 
 
 def parse_packet(data: bytes) -> Packet | None:
-    reader = PacketReader(data)
-    magic = reader.read_uint32()
-    schema = reader.read_uint32()
-    packet_type = reader.read_uint32()
+    if len(data) < 12:
+        return None
+    magic = struct.unpack(">I", data[:4])[0]
     if magic != WSJTX_MAGIC:
         return None
+    reader = PacketReader(data)
+    reader.read_uint32()
+    schema = reader.read_uint32()
+    packet_type = reader.read_uint32()
     wsjtx_id = reader.read_text()
     if packet_type == 0:
         return Heartbeat(wsjtx_id, schema, reader.read_uint32(), reader.read_text(), reader.read_text())

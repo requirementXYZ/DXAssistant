@@ -5,6 +5,7 @@ import urllib.parse
 
 from dxassistant.pskreporter import (
     PSKReporterClient,
+    PSKReporterError,
     ReceptionReport,
     distance_km,
     locator_to_latlon,
@@ -75,6 +76,20 @@ class PSKReporterTests(unittest.TestCase):
         self.assertEqual(parameters["mode"], ["FT8"])
         self.assertEqual(reports[0].receiver_locator, "JO02")
         self.assertEqual(reports[0].frequency_hz, 14_076_000)
+
+    def test_invalid_gzip_response_is_controlled(self):
+        client = PSKReporterClient(
+            opener=lambda request, timeout: FakeResponse(b"not gzip", "gzip")
+        )
+        with self.assertRaisesRegex(PSKReporterError, "invalid compressed"):
+            client.fetch("D2UY")
+
+    def test_invalid_xml_response_is_controlled(self):
+        client = PSKReporterClient(
+            opener=lambda request, timeout: FakeResponse(b"<broken")
+        )
+        with self.assertRaisesRegex(PSKReporterError, "invalid XML"):
+            client.fetch("D2UY")
 
 
 if __name__ == "__main__":

@@ -4,28 +4,45 @@ Last updated: 23 July 2026
 
 ## Current release
 
-The current release is **DX Assistant V0.14.0 Beta**.
+The current release is **DX Assistant V0.14.1 Beta**.
 
-- Portable ZIP: `releases/DXAssistant-v0.14.0-beta-Windows-portable.zip`
-- Portable folder: `releases/DXAssistant-v0.14.0-beta-Windows-portable/`
-- Per-user installer: `releases/DXAssistant-v0.14.0-beta-Setup.exe`
-- User manual: `documentation/DXAssistant-v0.14.0-beta-User-Manual.docx`
-- PDF manual: `documentation/DXAssistant-v0.14.0-beta-User-Manual.pdf`
+- Portable ZIP: `releases/DXAssistant-v0.14.1-beta-Windows-portable.zip`
+- Portable folder: `releases/DXAssistant-v0.14.1-beta-Windows-portable/`
+- Per-user installer: `releases/DXAssistant-v0.14.1-beta-Setup.exe`
+- User manual: `documentation/DXAssistant-v0.14.1-beta-User-Manual.docx`
+- PDF manual: `documentation/DXAssistant-v0.14.1-beta-User-Manual.pdf`
 - Colleague test guide: `source/COLLEAGUE_TEST_GUIDE.md`
 - Portable ZIP SHA-256:
-  `D299FC246C9F08766D19125894514188148461013429957BC811576279E0F992`
+  `05F3A8BDF3C23E564088EF837752D1DD0EB53B73C21B2BD112D1B3213D3702DB`
 - Installer SHA-256:
-  `0153A2C7956EAB6BA7019CC42E2DC19D755CF5185346DE1E71BF426DCEDF3B02`
+  `FB266EBD555DE059D00B81B59A10D5CCA101C108ADD3D13CC0F411FD08B67E3A`
 
-V0.14.0 passed 94 automated tests, source, portable and installed no-radio
+V0.14.1 passed 111 automated tests, source, portable and installed no-radio
 smoke tests, a hidden dashboard startup test, 956-entry archive verification,
-and a silent install/smoke/uninstall test that confirmed `config.json` is
-preserved. Source and documentation are synchronized to GitHub `main`.
+and a silent install/smoke/uninstall test that confirmed the private
+`config.json` is created from the template and preserved. Repository
+synchronization is pending the final release commit.
 
 ## Active development
 
 The authoritative development tree is `source/`. It currently reports version
-`0.14.0-beta`.
+`0.14.1-beta`.
+
+Implemented for V0.14.1:
+
+- Replaced the tracked mutable configuration with a credential-free template;
+  first launch creates the ignored, operator-owned `config.json`.
+- Periodic callbacks always reschedule after unexpected errors, and stale
+  receiver events after rapid Start/Stop are safely discarded.
+- Unexpected background-worker and malformed OmniRig responses now return
+  controlled results so tuning, polling and notification controls recover.
+- Decode-log failures no longer interrupt monitoring.
+- Receiver bind, socket ownership and rapid restart handling are hardened.
+- Configuration read errors use the normal visible error path.
+- Target Pushover alerts use bounded response reads and up to three delivery
+  attempts; malformed UDP warnings are ignored or rate-limited.
+- Application HTTP version identifiers share the authoritative application
+  version.
 
 Implemented for V0.14.0:
 
@@ -83,7 +100,7 @@ Retained from V0.12.0:
   dual-VFO or safety-state capability.
 - A controlled colleague test guide for experimental radio validation.
 
-Verification baseline: **94 automated tests passing** on 23 July 2026.
+Verification baseline: **111 automated tests passing** on 23 July 2026.
 
 ## Proven operating environment (previous release)
 

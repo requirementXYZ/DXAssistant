@@ -30,10 +30,10 @@ from .config import (
 from .engine import DXEngine
 from .hopping import SearchSession, SearchState
 from .logging import DecodeLogger, EventLogger
-from .omnirig import OmniRigClient, OmniRigError
+from .omnirig import OmniRigClient
 from .protocol import Decode, Heartbeat, Status
-from .pskreporter import PSKReporterClient, PSKReporterError, rank_bands
-from .pushover import PushoverClient, PushoverError
+from .pskreporter import PSKReporterClient, rank_bands
+from .pushover import PushoverClient
 from .receiver import UDPReceiver, WSJTXRequestError
 from .state import AppState, StateMachine
 
@@ -562,7 +562,7 @@ class Dashboard:
             try:
                 result = self.omnirig.align(frequency_hz)
                 self.events.put(("tune_result", (band, result, None)))
-            except OmniRigError as error:
+            except Exception as error:
                 self.events.put(("tune_result", (band, None, str(error))))
 
         threading.Thread(target=worker, name="OmniRigTune", daemon=True).start()
@@ -599,36 +599,40 @@ class Dashboard:
         self._update_controls()
 
     def _search_tick(self):
-        now = time.monotonic()
-        if self.search.state in {SearchState.SEARCHING, SearchState.STARTING} and (
-            self.engine.state.tx_enabled or self.engine.state.transmitting
-        ):
-            self.search.hand_to_operator()
-            self.search_status.set("Operator control - search remains paused")
-        elif self.search.state == SearchState.SEARCHING:
-            remaining = self.search.remaining(now)
-            if remaining is not None:
-                minutes, seconds = divmod(remaining, 60)
-                self.search_status.set(
-                    f"{self.search.current_band} - {minutes}:{seconds:02} remaining"
-                )
-            if (
-                self.search.is_due(now)
-                and not self.tune_in_progress
-                and not self.engine.state.decoding
+        try:
+            now = time.monotonic()
+            if self.search.state in {SearchState.SEARCHING, SearchState.STARTING} and (
+                self.engine.state.tx_enabled or self.engine.state.transmitting
             ):
-                enabled = self._search_band_names()
-                if not enabled:
-                    self.search.pause()
-                    self.search_status.set("Paused - no bands enabled")
-                else:
-                    next_band = self.search.next_band(enabled)
-                    if next_band == self.search.current_band:
-                        self.search.tuned(next_band, now)
+                self.search.hand_to_operator()
+                self.search_status.set("Operator control - search remains paused")
+            elif self.search.state == SearchState.SEARCHING:
+                remaining = self.search.remaining(now)
+                if remaining is not None:
+                    minutes, seconds = divmod(remaining, 60)
+                    self.search_status.set(
+                        f"{self.search.current_band} - {minutes}:{seconds:02} remaining"
+                    )
+                if (
+                    self.search.is_due(now)
+                    and not self.tune_in_progress
+                    and not self.engine.state.decoding
+                ):
+                    enabled = self._search_band_names()
+                    if not enabled:
+                        self.search.pause()
+                        self.search_status.set("Paused - no bands enabled")
                     else:
-                        self._start_tune(next_band)
-        self._update_controls()
-        self.root.after(250, self._search_tick)
+                        next_band = self.search.next_band(enabled)
+                        if next_band == self.search.current_band:
+                            self.search.tuned(next_band, now)
+                        else:
+                            self._start_tune(next_band)
+            self._update_controls()
+        except Exception as error:
+            self._periodic_callback_failed("band-search timer", error)
+        finally:
+            self.root.after(250, self._search_tick)
 
     def change_target(self):
         if self.machine.current != AppState.STOPPED:
@@ -1037,11 +1041,18 @@ class Dashboard:
         api_token = self.pushover_api_token
 
         def worker():
-            try:
-                self.pushover_client.push(user_key, api_token, title, message)
-                self.events.put(("pushover_result", (purpose, None)))
-            except PushoverError as error:
-                self.events.put(("pushover_result", (purpose, str(error))))
+            attempts = 3 if purpose == "target" else 1
+            error_text = ""
+            for attempt in range(attempts):
+                try:
+                    self.pushover_client.push(user_key, api_token, title, message)
+                    self.events.put(("pushover_result", (purpose, None)))
+                    return
+                except Exception as error:
+                    error_text = str(error)
+                    if attempt + 1 < attempts:
+                        time.sleep(attempt + 1)
+            self.events.put(("pushover_result", (purpose, error_text)))
 
         threading.Thread(target=worker, name="Pushover", daemon=True).start()
 
@@ -1118,7 +1129,7 @@ class Dashboard:
         def worker():
             try:
                 self.events.put(("rig_check_result", (self.omnirig.status(), None)))
-            except OmniRigError as error:
+            except Exception as error:
                 self.events.put(("rig_check_result", (None, str(error))))
 
         threading.Thread(target=worker, name="OmniRigCompatibility", daemon=True).start()
@@ -1160,16 +1171,30 @@ class Dashboard:
                 f"Log warning: {self.event_logger.last_error}; events buffered in memory"
             )
 
+    def _periodic_callback_failed(self, callback: str, error: Exception) -> None:
+        detail = f"{callback} failed: {error}"
+        self._audit("periodic_callback_failed", detail, callback=callback)
+        self.status_text.set(f"Internal warning: {callback} recovered; see event log")
+
     def _poll_events(self):
         try:
             while True:
                 kind, payload = self.events.get_nowait()
                 if kind == "receiver_started":
+                    if self.machine.current != AppState.STARTING:
+                        self._audit(
+                            "stale_receiver_event",
+                            f"Ignored receiver_started while {self.machine.current.value}",
+                        )
+                        continue
                     self.machine.transition(AppState.MONITORING, "UDP listener started")
                     self._audit("monitoring_started", "UDP listener started")
                     self.values["connection"].set("Listening")
                     self._show_state(f"Listening on {self.config.udp_host}:{self.config.udp_port}")
                 elif kind == "receiver_error":
+                    if self.machine.current == AppState.STOPPED:
+                        self._audit("stale_receiver_event", f"Ignored receiver_error: {payload}")
+                        continue
                     if self.machine.current != AppState.ERROR:
                         self.machine.transition(AppState.ERROR, payload)
                     if self.search.state != SearchState.STOPPED:
@@ -1181,6 +1206,9 @@ class Dashboard:
                 elif kind == "warning":
                     self.status_text.set(payload)
                 elif kind == "packet":
+                    if self.machine.current == AppState.STOPPED:
+                        self._audit("stale_receiver_event", "Ignored packet while stopped")
+                        continue
                     self._handle_packet(payload)
                 elif kind == "tune_result":
                     self._handle_tune_result(payload)
@@ -1193,54 +1221,61 @@ class Dashboard:
                 self._update_controls()
         except queue.Empty:
             pass
-        self.root.after(100, self._poll_events)
+        except Exception as error:
+            self._periodic_callback_failed("event processing", error)
+        finally:
+            self.root.after(100, self._poll_events)
 
     def _pskr_tick(self):
-        now = time.monotonic()
-        if (
-            self.config.psk_reporter_enabled
-            and self.machine.current
-            in {AppState.MONITORING, AppState.TARGET_DECODED, AppState.DEGRADED}
-            and not self.pskr_poll_in_progress
-            and now >= self.pskr_next_poll
-        ):
-            target = self.engine.state.target_call
-            locator = self.station_locator
-            distance_km = self.pskr_distance_km
-            enabled_bands = self._enabled_band_names()
-            lookback = self.config.psk_reporter_lookback_minutes
-            self.pskr_poll_in_progress = True
-            # Set the next permitted time before starting the request so even
-            # failures cannot cause rapid retries against the public service.
-            self.pskr_next_poll = now + PSK_REPORTER_POLL_SECONDS
-            self.pskr_status_text.set(f"Checking {target} near {locator}...")
+        try:
+            now = time.monotonic()
+            if (
+                self.config.psk_reporter_enabled
+                and self.machine.current
+                in {AppState.MONITORING, AppState.TARGET_DECODED, AppState.DEGRADED}
+                and not self.pskr_poll_in_progress
+                and now >= self.pskr_next_poll
+            ):
+                target = self.engine.state.target_call
+                locator = self.station_locator
+                distance_km = self.pskr_distance_km
+                enabled_bands = self._enabled_band_names()
+                lookback = self.config.psk_reporter_lookback_minutes
+                self.pskr_poll_in_progress = True
+                # Set the next permitted time before starting the request so even
+                # failures cannot cause rapid retries against the public service.
+                self.pskr_next_poll = now + PSK_REPORTER_POLL_SECONDS
+                self.pskr_status_text.set(f"Checking {target} near {locator}...")
 
-            def worker():
-                try:
-                    reports = self.pskr_client.fetch(target, lookback)
-                    priorities = rank_bands(
-                        reports,
-                        locator,
-                        enabled_bands,
-                        lookback_minutes=lookback,
-                        maximum_distance_km=distance_km,
-                    )
-                    self.events.put(
-                        (
-                            "pskr_result",
-                            (target, locator, distance_km, priorities, len(reports), None),
+                def worker():
+                    try:
+                        reports = self.pskr_client.fetch(target, lookback)
+                        priorities = rank_bands(
+                            reports,
+                            locator,
+                            enabled_bands,
+                            lookback_minutes=lookback,
+                            maximum_distance_km=distance_km,
                         )
-                    )
-                except (PSKReporterError, ValueError) as error:
-                    self.events.put(
-                        (
-                            "pskr_result",
-                            (target, locator, distance_km, [], 0, str(error)),
+                        self.events.put(
+                            (
+                                "pskr_result",
+                                (target, locator, distance_km, priorities, len(reports), None),
+                            )
                         )
-                    )
+                    except Exception as error:
+                        self.events.put(
+                            (
+                                "pskr_result",
+                                (target, locator, distance_km, [], 0, str(error)),
+                            )
+                        )
 
-            threading.Thread(target=worker, name="PSKReporter", daemon=True).start()
-        self.root.after(1000, self._pskr_tick)
+                threading.Thread(target=worker, name="PSKReporter", daemon=True).start()
+        except Exception as error:
+            self._periodic_callback_failed("PSK Reporter timer", error)
+        finally:
+            self.root.after(1000, self._pskr_tick)
 
     def _handle_pskr_result(self, payload):
         target, locator, distance_km, priorities, total_reports, error = payload
@@ -1319,7 +1354,16 @@ class Dashboard:
                 self.recent_decodes.delete(recent_items[0])
                 recent_items = self.recent_decodes.get_children()
             self.recent_decodes.see(recent_item)
-            self.logger.write(packet, self.engine.state.dial_frequency_hz, result.target_found)
+            log_path = self.logger.write(
+                packet,
+                self.engine.state.dial_frequency_hz,
+                result.target_found,
+            )
+            if log_path is None:
+                self.status_text.set(
+                    f"Decode log warning: {self.logger.last_error}; monitoring continues"
+                )
+                self._audit("decode_log_failed", "Decode log write failed")
             if result.target_found:
                 if result.transmitting_grid:
                     self.latest_target_grid = result.transmitting_grid
@@ -1348,14 +1392,18 @@ class Dashboard:
         self._show_state(self.status_text.get())
 
     def _check_timeout(self):
-        if self.machine.current in {AppState.MONITORING, AppState.TARGET_DECODED} and self.last_packet_utc:
-            elapsed = (datetime.now(timezone.utc) - self.last_packet_utc).total_seconds()
-            if elapsed > self.config.heartbeat_timeout_seconds and self.machine.current != AppState.DEGRADED:
-                self.machine.transition(AppState.DEGRADED, "WSJT-X data timeout")
-                self._audit("wsjtx_timeout", "WSJT-X data timeout")
-                self.values["connection"].set("No recent data")
-                self._show_state("WSJT-X data timeout; waiting for recovery")
-        self.root.after(1000, self._check_timeout)
+        try:
+            if self.machine.current in {AppState.MONITORING, AppState.TARGET_DECODED} and self.last_packet_utc:
+                elapsed = (datetime.now(timezone.utc) - self.last_packet_utc).total_seconds()
+                if elapsed > self.config.heartbeat_timeout_seconds and self.machine.current != AppState.DEGRADED:
+                    self.machine.transition(AppState.DEGRADED, "WSJT-X data timeout")
+                    self._audit("wsjtx_timeout", "WSJT-X data timeout")
+                    self.values["connection"].set("No recent data")
+                    self._show_state("WSJT-X data timeout; waiting for recovery")
+        except Exception as error:
+            self._periodic_callback_failed("WSJT-X timeout timer", error)
+        finally:
+            self.root.after(1000, self._check_timeout)
 
     def _show_state(self, message):
         self.values["state"].set(self.machine.current.value)

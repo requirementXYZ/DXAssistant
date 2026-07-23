@@ -49,6 +49,8 @@ def load_config(path: Path) -> AppConfig:
         raw = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as error:
         raise ValueError(f"Configuration file not found: {path}") from error
+    except (OSError, UnicodeDecodeError) as error:
+        raise ValueError(f"Could not read configuration file {path}: {error}") from error
     except json.JSONDecodeError as error:
         raise ValueError(f"Invalid JSON in {path}: {error}") from error
 

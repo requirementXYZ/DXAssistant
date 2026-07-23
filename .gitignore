@@ -12,6 +12,8 @@ __pycache__/
 # Runtime/operator state
 logs/
 *.log
+source/config.json
+*.tmp
 
 # Windows and editor metadata
 Thumbs.db

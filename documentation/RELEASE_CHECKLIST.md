@@ -19,8 +19,10 @@
 
 - [ ] Fresh versioned PyInstaller build directory used.
 - [ ] Absolute OmniRig bridge `--add-data` source path used.
-- [ ] Portable folder contains `DXAssistant.exe`, `_internal`, `config.json`,
+- [ ] Portable folder contains `DXAssistant.exe`, `_internal`,
+  `config.template.json`,
   README, release notes, and current manual.
+- [ ] First packaged launch creates `config.json` without modifying the template.
 - [ ] No duplicated nested portable folder exists.
 - [ ] Packaged `--smoke-test` returns exit code 0.
 - [ ] Dashboard opens from the packaged folder without starting monitoring.

@@ -1,4 +1,37 @@
-# DX Assistant V0.14.0 Beta - 23 July 2026
+# DX Assistant V0.14.1 Beta - 23 July 2026
+
+V0.14.1 is a corrective reliability and credential-safety release.
+
+## Changed in V0.14.1
+
+- Replaced the tracked mutable `config.json` with a credential-free
+  `config.template.json`. DX Assistant creates the operator-owned live
+  configuration on first launch and preserves it thereafter.
+- Protected all periodic UI callbacks so an unexpected handler failure is
+  logged and the callback is rescheduled instead of silently stopping.
+- Ignores stale receiver events after a rapid Start/Stop sequence.
+- Guarantees error result events for unexpected OmniRig, PSK Reporter and
+  Pushover worker failures so in-progress controls recover.
+- Treats incomplete successful-looking OmniRig bridge replies as controlled
+  errors rather than leaving tuning permanently in progress.
+- Contains decode-log disk failures without interrupting monitoring.
+- Hardened rapid receiver Stop/Start, socket ownership and bind-error handling.
+- Reports unreadable or invalidly encoded configuration files in the normal
+  configuration error dialog.
+- Newly raised target alerts retry phone delivery up to three times, and
+  Pushover response reads are bounded.
+- Ignores unrelated short UDP datagrams and rate-limits malformed WSJT-X packet
+  warnings.
+- HTTP User-Agent versions now come from the application version.
+- The receive-only safety boundary and radio-control interlocks are unchanged.
+
+## Verification
+
+- 111 automated tests pass, including new first-run configuration, callback
+  recovery, rapid Start/Stop, unexpected worker failure, decode-log failure,
+  malformed packet, notification retry and unchanged radio safety tests.
+
+## Included from V0.14.0
 
 V0.14 adds optional Pushover phone notifications for newly raised target alerts.
 

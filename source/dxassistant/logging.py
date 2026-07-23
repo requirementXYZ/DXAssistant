@@ -15,24 +15,30 @@ class DecodeLogger:
 
     def __init__(self, directory: Path):
         self.directory = directory
+        self.last_error = ""
 
     def write(self, decode: Decode, dial_frequency_hz: int, target_found: bool, now=None):
         now = now or datetime.now(timezone.utc)
-        self.directory.mkdir(parents=True, exist_ok=True)
         path = self.directory / f"decodes-{now:%Y-%m-%d}.csv"
-        new_file = not path.exists()
-        with path.open("a", encoding="utf-8", newline="") as stream:
-            writer = csv.DictWriter(stream, fieldnames=self.FIELDS)
-            if new_file:
-                writer.writeheader()
-            writer.writerow({
-                "received_utc": now.isoformat(), "decode_time": decode.time,
-                "band": band_for_frequency(dial_frequency_hz),
-                "dial_frequency_hz": dial_frequency_hz, "audio_frequency_hz": decode.audio_frequency_hz,
-                "snr_db": decode.snr, "delta_time_s": f"{decode.delta_time:.3f}",
-                "mode": decode.mode, "message": decode.message,
-                "target_found": target_found, "wsjtx_id": decode.wsjtx_id,
-            })
+        try:
+            self.directory.mkdir(parents=True, exist_ok=True)
+            new_file = not path.exists()
+            with path.open("a", encoding="utf-8", newline="") as stream:
+                writer = csv.DictWriter(stream, fieldnames=self.FIELDS)
+                if new_file:
+                    writer.writeheader()
+                writer.writerow({
+                    "received_utc": now.isoformat(), "decode_time": decode.time,
+                    "band": band_for_frequency(dial_frequency_hz),
+                    "dial_frequency_hz": dial_frequency_hz, "audio_frequency_hz": decode.audio_frequency_hz,
+                    "snr_db": decode.snr, "delta_time_s": f"{decode.delta_time:.3f}",
+                    "mode": decode.mode, "message": decode.message,
+                    "target_found": target_found, "wsjtx_id": decode.wsjtx_id,
+                })
+        except OSError as error:
+            self.last_error = str(error)
+            return None
+        self.last_error = ""
         return path
 
 

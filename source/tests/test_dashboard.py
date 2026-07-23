@@ -82,6 +82,68 @@ class DashboardTests(unittest.TestCase):
         self.assertIn("application_started", [item["event"] for item in records])
         self.assertIn("monitoring_start_requested", [item["event"] for item in records])
 
+    def test_stale_receiver_started_after_stop_is_ignored(self):
+        self.dashboard.machine.transition(AppState.STARTING, "test")
+        self.dashboard.stop()
+        self.dashboard.events.put(("receiver_started", None))
+        self.dashboard._poll_events()
+        self.assertEqual(self.dashboard.machine.current, AppState.STOPPED)
+
+    def test_event_poll_reschedules_after_handler_exception(self):
+        self.dashboard.machine.transition(AppState.STARTING, "test")
+        self.dashboard.machine.transition(AppState.MONITORING, "test")
+        self.dashboard.events.put(("packet", object()))
+        with patch.object(
+            self.dashboard, "_handle_packet", side_effect=RuntimeError("test failure")
+        ):
+            with patch.object(self.dashboard.root, "after") as after:
+                self.dashboard._poll_events()
+        after.assert_called_once_with(100, self.dashboard._poll_events)
+        self.assertIn("recovered", self.dashboard.status_text.get())
+        self.dashboard.events.put(("warning", "subsequent event processed"))
+        with patch.object(self.dashboard.root, "after"):
+            self.dashboard._poll_events()
+        self.assertEqual(self.dashboard.status_text.get(), "subsequent event processed")
+
+    def test_target_mobile_alert_retries_unexpected_failure(self):
+        self.dashboard.pushover_client.push = unittest.mock.Mock(
+            side_effect=[RuntimeError("network"), None]
+        )
+        with patch("dxassistant.dashboard.time.sleep"):
+            self.dashboard._start_pushover_send("title", "message", "target")
+            kind, payload = self.dashboard.events.get(timeout=2)
+        self.assertEqual((kind, payload), ("pushover_result", ("target", None)))
+        self.assertEqual(self.dashboard.pushover_client.push.call_count, 2)
+
+    def test_unexpected_tune_failure_resets_in_progress_flag(self):
+        self.dashboard.machine.transition(AppState.STARTING, "test")
+        self.dashboard.machine.transition(AppState.MONITORING, "test")
+        self.dashboard.engine.state.dial_frequency_hz = 14_074_000
+        self.dashboard.omnirig.align = unittest.mock.Mock(
+            side_effect=RuntimeError("unexpected bridge failure")
+        )
+        self.dashboard._start_tune("17m")
+        kind, payload = self.dashboard.events.get(timeout=2)
+        self.assertEqual(kind, "tune_result")
+        self.dashboard._handle_tune_result(payload)
+        self.assertFalse(self.dashboard.tune_in_progress)
+        self.assertIn("unexpected bridge failure", self.dashboard.last_search_error)
+
+    def test_unexpected_psk_failure_resets_poll_flag(self):
+        self.dashboard.machine.transition(AppState.STARTING, "test")
+        self.dashboard.machine.transition(AppState.MONITORING, "test")
+        self.dashboard.pskr_next_poll = 0
+        self.dashboard.pskr_client.fetch = unittest.mock.Mock(
+            side_effect=RuntimeError("unexpected service failure")
+        )
+        with patch.object(self.dashboard.root, "after"):
+            self.dashboard._pskr_tick()
+        kind, payload = self.dashboard.events.get(timeout=2)
+        self.assertEqual(kind, "pskr_result")
+        self.dashboard._handle_pskr_result(payload)
+        self.assertFalse(self.dashboard.pskr_poll_in_progress)
+        self.assertIn("Unavailable", self.dashboard.pskr_status_text.get())
+
     def test_muted_alarm_keeps_visual_alert_without_bell(self):
         self.dashboard.machine.transition(AppState.STARTING, "test")
         self.dashboard.machine.transition(AppState.MONITORING, "test")

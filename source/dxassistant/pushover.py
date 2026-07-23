@@ -6,6 +6,7 @@ import urllib.parse
 import urllib.request
 from typing import Callable
 
+from . import __version__
 
 PUSHOVER_MESSAGES_ENDPOINT = "https://api.pushover.net/1/messages.json"
 
@@ -50,15 +51,15 @@ class PushoverClient:
             headers={
                 "Accept": "application/json",
                 "Content-Type": "application/x-www-form-urlencoded",
-                "User-Agent": "DXAssistant/0.14",
+                "User-Agent": f"DXAssistant/{__version__}",
             },
         )
         try:
             with self.opener(request, timeout=self.timeout_seconds) as response:
-                result = json.loads(response.read().decode("utf-8"))
+                result = json.loads(response.read(65536).decode("utf-8"))
         except urllib.error.HTTPError as error:
             try:
-                detail = json.loads(error.read().decode("utf-8"))
+                detail = json.loads(error.read(65536).decode("utf-8"))
                 message_text = "; ".join(detail.get("errors", []))
             except (json.JSONDecodeError, UnicodeDecodeError):
                 message_text = ""

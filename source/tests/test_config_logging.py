@@ -43,6 +43,13 @@ class ConfigAndLoggingTests(unittest.TestCase):
             self.assertFalse(config.bands["6m"].enabled)
             self.assertEqual(config.bands["6m"].frequency_mhz, 50.313)
 
+    def test_unreadable_text_config_is_reported_as_value_error(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "config.json"
+            path.write_bytes(b"\xff\xfe\xfa")
+            with self.assertRaisesRegex(ValueError, "Could not read configuration"):
+                load_config(path)
+
     def test_new_standard_band_can_be_saved_into_an_older_band_plan(self):
         raw = {
             "target_call": "T22TT", "udp_host": "127.0.0.1", "udp_port": 2237,
@@ -68,6 +75,13 @@ class ConfigAndLoggingTests(unittest.TestCase):
                 rows = list(csv.DictReader(stream))
             self.assertEqual(rows[0]["target_found"], "True")
             self.assertEqual(rows[0]["band"], "20m")
+
+    def test_decode_log_failure_does_not_raise(self):
+        packet = Decode("WSJT-X", 3, True, "12:00:00", -8, 0.1, 1000, "FT8", "CQ T22TT")
+        logger = DecodeLogger(Path("unused"))
+        with unittest.mock.patch("pathlib.Path.mkdir", side_effect=OSError("disk full")):
+            self.assertIsNone(logger.write(packet, 14_074_000, True))
+        self.assertIn("disk full", logger.last_error)
 
     def test_event_log_is_append_only_json_lines(self):
         with tempfile.TemporaryDirectory() as directory:

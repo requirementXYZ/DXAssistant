@@ -1,9 +1,24 @@
-# DX Assistant V0.14.0 Beta
+# DX Assistant V0.14.1 Beta
 
-This Beta adds optional Pushover phone notifications while retaining the
-expanded band plan and capability-gated OmniRig support.
+This corrective Beta hardens configuration privacy, background processing,
+logging, receiver restarts and phone-alert delivery while retaining the
+V0.14 Pushover feature, expanded band plan and capability-gated OmniRig support.
 The core safety boundary is unchanged: DX Assistant never keys the transmitter
 and never sets radio mode, split, power, or PTT.
+
+## V0.14.1 reliability and configuration correction
+
+The supplied `config.template.json` contains no operator credentials. On first
+launch DX Assistant copies it to a local `config.json`; later launches and
+upgrades preserve that live file. Source checkouts ignore the live file, so
+personal Pushover keys cannot be accidentally committed with normal project
+changes.
+
+Unexpected callback, worker, receiver, malformed-packet, configuration-read,
+or decode-log failures are now contained and reported without silently stopping
+the monitoring event loop. Newly raised target phone alerts make up to three
+delivery attempts after transient failure. Local visual and audible alerts
+remain independent of phone delivery.
 
 ## V0.14 Pushover mobile alerts
 
@@ -43,14 +58,15 @@ cleared; the separate green current-band indication remains.
 ## Start the dashboard
 
 1. Configure WSJT-X UDP messages for `127.0.0.1:2237`.
-2. Edit `config.json` and set the target callsign.
+2. Start DX Assistant once to create `config.json`, then edit it if required.
 3. Double-click `Start-DXAssistant.cmd`, or run `python main.py`.
 4. Select **Start monitoring**.
 
 The portable Windows build starts with `DXAssistant.exe` and does not require a
 separate Python installation. Alternatively, run the supplied Setup executable
 to install DX Assistant for the current Windows user with Start Menu and optional
-desktop shortcuts. Keep `config.json` beside the portable executable so the
+desktop shortcuts. Keep `config.template.json` beside the portable executable;
+DX Assistant creates and preserves `config.json` beside it so the
 locator, PSK distance, enabled antenna bands, operating frequencies, and
 optional Pushover settings can be saved. OmniRig 1.20
 remains a separate prerequisite and must have Rig 1 configured correctly.

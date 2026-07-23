@@ -71,6 +71,14 @@ class OmniRigTests(unittest.TestCase):
         self.assertFalse(result.compatible)
         self.assertEqual(result.missing_capabilities, ("read_freq_b", "write_freq_b"))
 
+    @patch("dxassistant.omnirig.subprocess.run")
+    def test_success_payload_with_missing_fields_is_rejected(self, run):
+        run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps({"ok": True, "rig_type": "Broken"}), ""
+        )
+        with self.assertRaisesRegex(OmniRigError, "incomplete or invalid"):
+            OmniRigClient().status()
+
 
 if __name__ == "__main__":
     unittest.main()

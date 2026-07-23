@@ -3,6 +3,78 @@
 This is the chronological record of product decisions, implementation, tests,
 packaging, and operator validation. Add new entries at the top.
 
+## 23 July 2026 - V0.14.1 review-driven reliability correction
+
+User need:
+
+- Assess the V0.14.0 security/reliability review and implement the corrections
+  necessary for safe operator use.
+
+Implementation:
+
+- Replaced the tracked mutable `source/config.json` with the credential-free
+  `source/config.template.json`; first launch creates an ignored,
+  operator-owned live configuration without overwriting an existing one.
+- Protected all four periodic dashboard callbacks with recovery logging and
+  unconditional rescheduling. Stale receiver events after rapid Start/Stop are
+  logged and discarded.
+- Guaranteed controlled result events after unexpected tuning, compatibility,
+  PSK Reporter and Pushover worker failures. Incomplete OmniRig success payloads
+  now become `OmniRigError` results.
+- Contained decode CSV write failures so monitoring continues.
+- Hardened receiver binding, socket locking, rapid restart and stop-timeout
+  reporting.
+- Added visible handling for configuration permission/encoding errors.
+- Added up to three target-notification delivery attempts, bounded Pushover
+  response reads, early WSJT-X magic checks and rate-limited malformed-packet
+  warnings.
+- Consolidated HTTP client version identifiers with the application version.
+- Updated README, release notes, packaging guidance, installer, project status
+  and the V0.14.1 DOCX/PDF user manual.
+- Deferred the typed-event and dashboard-controller refactors because they are
+  maintainability work rather than corrective release blockers. The broad
+  default-locator change was also deferred in favour of retaining a meaningful
+  working default until a first-run locator workflow is designed.
+
+Verification:
+
+- 111 automated tests passed, including first-run config creation, callback
+  recovery, rapid Start/Stop, unexpected worker failures, malformed bridge
+  replies, decode-log failure, receiver restart/bind failure, bounded Pushover
+  reads, HTTP/timeout handling, notification retry, invalid gzip/XML and all
+  receive-only safety tests.
+- Python compilation and the PowerShell bridge parser checks passed.
+- Source, portable and installed no-radio smoke tests returned exit code 0.
+- A four-second hidden portable dashboard startup remained healthy and created
+  its private config without starting monitoring.
+- The 956-entry ZIP contains the executable, bundled bridge/runtime,
+  credential-free configuration template, release notes, README, colleague
+  guide and DOCX/PDF manuals. It contains no live config, credentials, runtime
+  logs or duplicated nested package directory.
+- Silent isolated install, installed smoke and uninstall returned exit code 0;
+  the generated private `config.json` remained byte-for-byte unchanged after
+  uninstall.
+- Microsoft Word exported the 13-page manual to PDF; all rendered pages were
+  visually inspected with no clipping, overlap, broken tables, missing content
+  or footer/version errors.
+
+Packages:
+
+- `releases/DXAssistant-v0.14.1-beta-Windows-portable.zip`
+  - SHA-256: `05F3A8BDF3C23E564088EF837752D1DD0EB53B73C21B2BD112D1B3213D3702DB`
+- `releases/DXAssistant-v0.14.1-beta-Setup.exe`
+  - SHA-256: `FB266EBD555DE059D00B81B59A10D5CCA101C108ADD3D13CC0F411FD08B67E3A`
+
+Repository synchronization:
+
+- Pending final commit, push and remote default-branch verification.
+
+Remaining live test:
+
+- Automated verification did not contact Pushover, tune a live radio or
+  transmit. The operator should verify one phone alert with personal
+  credentials and complete the existing receive-only radio acceptance test.
+
 ## 23 July 2026 - V0.14.0 optional Pushover mobile alerts
 
 User need:

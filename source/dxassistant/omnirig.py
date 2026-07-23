@@ -77,17 +77,20 @@ class OmniRigClient:
             raise OmniRigError("OmniRig bridge returned invalid data") from error
         if not payload.get("ok"):
             raise OmniRigError(payload.get("message", "Unknown OmniRig error"))
-        capability_data = payload.get("capabilities") or {}
-        return OmniRigResult(
-            rig_type=payload["rig_type"],
-            status=payload["status"],
-            frequency_a_hz=int(payload["frequency_a_hz"]),
-            frequency_b_hz=int(payload["frequency_b_hz"]),
-            receive_frequency_hz=int(payload["receive_frequency_hz"]),
-            split=payload["split"],
-            routing=payload["routing"],
-            tx_state=payload["tx_state"],
-            compatible=bool(capability_data.get("compatible", False)),
-            missing_capabilities=tuple(capability_data.get("missing") or ()),
-            capabilities=dict(capability_data.get("parameters") or {}),
-        )
+        try:
+            capability_data = payload.get("capabilities") or {}
+            return OmniRigResult(
+                rig_type=payload["rig_type"],
+                status=payload["status"],
+                frequency_a_hz=int(payload["frequency_a_hz"]),
+                frequency_b_hz=int(payload["frequency_b_hz"]),
+                receive_frequency_hz=int(payload["receive_frequency_hz"]),
+                split=payload["split"],
+                routing=payload["routing"],
+                tx_state=payload["tx_state"],
+                compatible=bool(capability_data.get("compatible", False)),
+                missing_capabilities=tuple(capability_data.get("missing") or ()),
+                capabilities=dict(capability_data.get("parameters") or {}),
+            )
+        except (KeyError, TypeError, ValueError) as error:
+            raise OmniRigError("OmniRig bridge returned incomplete or invalid data") from error

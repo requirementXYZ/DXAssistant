@@ -10,6 +10,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from typing import Callable, Iterable
 
+from . import __version__
 from .bands import band_for_frequency
 
 
@@ -195,7 +196,7 @@ class PSKReporterClient:
             headers={
                 "Accept": "application/xml,text/xml",
                 "Accept-Encoding": "gzip",
-                "User-Agent": "DXAssistant/0.7 (PSK Reporter band prioritisation)",
+                "User-Agent": f"DXAssistant/{__version__} (PSK Reporter band prioritisation)",
             },
         )
         try:

@@ -44,8 +44,9 @@ live transmitter.
   data paths relative to the spec-file directory.
 - Copy the complete one-directory PyInstaller result into a versioned folder in
   `releases/`.
-- Keep `config.json`, README, release notes, manuals, `_internal`, and
-  `DXAssistant.exe` together.
+- Keep `config.template.json`, README, release notes, manuals, `_internal`, and
+  `DXAssistant.exe` together. The application creates the ignored/operator-owned
+  `config.json` on first launch.
 - Verify `DXAssistant.exe --smoke-test` before zipping.
 
 ## Documentation rules
