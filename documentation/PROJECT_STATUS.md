@@ -20,8 +20,9 @@ The current release is **DX Assistant V0.14.1 Beta**.
 V0.14.1 passed 111 automated tests, source, portable and installed no-radio
 smoke tests, a hidden dashboard startup test, 956-entry archive verification,
 and a silent install/smoke/uninstall test that confirmed the private
-`config.json` is created from the template and preserved. Repository
-synchronization is pending the final release commit.
+`config.json` is created from the template and preserved. Source and
+documentation are synchronized to GitHub `main`; release commit `ebe8368` was
+verified on the remote default branch.
 
 ## Active development
 

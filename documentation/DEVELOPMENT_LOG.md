@@ -67,7 +67,10 @@ Packages:
 
 Repository synchronization:
 
-- Pending final commit, push and remote default-branch verification.
+- Published the V0.14.1 authoritative source, tests, release metadata and
+  manuals to the canonical repository in commit `ebe8368`.
+- Verified full commit `ebe83683c7624c55598518ca3e1498276fc5c77a` on the
+  remote `main` branch before finalizing this development record.
 
 Remaining live test:
 
