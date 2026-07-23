@@ -4,7 +4,7 @@ Last updated: 23 July 2026
 
 ## Current release
 
-The release currently being prepared is **DX Assistant V0.14.0 Beta**.
+The current release is **DX Assistant V0.14.0 Beta**.
 
 - Portable ZIP: `releases/DXAssistant-v0.14.0-beta-Windows-portable.zip`
 - Portable folder: `releases/DXAssistant-v0.14.0-beta-Windows-portable/`
@@ -20,7 +20,7 @@ The release currently being prepared is **DX Assistant V0.14.0 Beta**.
 V0.14.0 passed 94 automated tests, source, portable and installed no-radio
 smoke tests, a hidden dashboard startup test, 956-entry archive verification,
 and a silent install/smoke/uninstall test that confirmed `config.json` is
-preserved. Repository synchronization remains the release-completion step.
+preserved. Source and documentation are synchronized to GitHub `main`.
 
 ## Active development
 
