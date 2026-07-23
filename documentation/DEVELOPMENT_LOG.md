@@ -55,7 +55,8 @@ Packages:
 
 Repository synchronization:
 
-- Pending final commit, push, and remote verification.
+- Published the V0.14.0 authoritative source, tests, release metadata and
+  manuals to the canonical repository in commit `14c5263`.
 
 Remaining live test:
 
