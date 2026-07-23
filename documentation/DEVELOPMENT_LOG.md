@@ -3,6 +3,31 @@
 This is the chronological record of product decisions, implementation, tests,
 packaging, and operator validation. Add new entries at the top.
 
+## 23 July 2026 - V0.14.1 user-manual layout correction
+
+User need:
+
+- Provide the current user manual in an updated, presentation-ready form.
+
+Implementation:
+
+- Retained the complete V0.14.1 operating, installation, configuration,
+  Pushover and receive-only safety guidance.
+- Moved the supplied band-plan heading so it remains with the complete
+  frequency table.
+- Reworked the Pushover setup numbering and notification bullets to prevent
+  compressed or stretched PDF rendering.
+
+Verification:
+
+- Microsoft Word exported the corrected DOCX to a 13-page PDF.
+- All pages were visually checked; the corrected tables and lists are clean,
+  with no clipping, overlap, orphaned headings or missing content.
+- DOCX SHA-256:
+  `99749663B34F2F037A25ECA04660B33222B434DE5780E92EA6EC43061818310A`.
+- PDF SHA-256:
+  `136F9B434AD65B3BC83081FFF85ED853E01F9A7B921AEFEE798CB168788CCE3A`.
+
 ## 23 July 2026 - V0.14.1 review-driven reliability correction
 
 User need:
