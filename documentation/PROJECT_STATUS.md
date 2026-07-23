@@ -1,32 +1,48 @@
 # DX Assistant project status
 
-Last updated: 22 July 2026
+Last updated: 23 July 2026
 
 ## Current release
 
-The current release is **DX Assistant V0.13.1 Beta**.
+The release currently being prepared is **DX Assistant V0.14.0 Beta**.
 
-- Portable ZIP: `releases/DXAssistant-v0.13.1-beta-Windows-portable.zip`
-- Portable folder: `releases/DXAssistant-v0.13.1-beta-Windows-portable/`
-- Per-user installer: `releases/DXAssistant-v0.13.1-beta-Setup.exe`
-- User manual: `documentation/DXAssistant-v0.13.1-beta-User-Manual.docx`
-- PDF manual: `documentation/DXAssistant-v0.13.1-beta-User-Manual.pdf`
+- Portable ZIP: `releases/DXAssistant-v0.14.0-beta-Windows-portable.zip`
+- Portable folder: `releases/DXAssistant-v0.14.0-beta-Windows-portable/`
+- Per-user installer: `releases/DXAssistant-v0.14.0-beta-Setup.exe`
+- User manual: `documentation/DXAssistant-v0.14.0-beta-User-Manual.docx`
+- PDF manual: `documentation/DXAssistant-v0.14.0-beta-User-Manual.pdf`
 - Colleague test guide: `source/COLLEAGUE_TEST_GUIDE.md`
 - Portable ZIP SHA-256:
-  `563C53629B5FDFD0A6171D52728F72EDF3C3A5F4DC8F564D7A891EE4A4A1CC3A`
+  `D299FC246C9F08766D19125894514188148461013429957BC811576279E0F992`
 - Installer SHA-256:
-  `AD7F2D9801A61BE3BEB74137F0B745CDC97D70D11E3898F3D646141A39BDBBB0`
+  `0153A2C7956EAB6BA7019CC42E2DC19D755CF5185346DE1E71BF426DCEDF3B02`
 
-V0.13.1 passed 86 automated tests, source, portable and installed no-radio smoke tests,
-a hidden dashboard startup test, 956-entry archive verification, and a silent
-install/smoke/uninstall test that confirmed `config.json` is preserved.
+V0.14.0 passed 94 automated tests, source, portable and installed no-radio
+smoke tests, a hidden dashboard startup test, 956-entry archive verification,
+and a silent install/smoke/uninstall test that confirmed `config.json` is
+preserved. Repository synchronization remains the release-completion step.
 
 ## Active development
 
 The authoritative development tree is `source/`. It currently reports version
-`0.13.1-beta` and matches the packaged release.
+`0.14.0-beta`.
 
-Implemented for V0.13.1:
+Implemented for V0.14.0:
+
+- Added optional Pushover phone notifications for newly raised target alerts.
+- Added a stopped-only **Mobile alerts** dialog with masked User Key and API
+  Token fields, enable control, local save and test-notification action.
+- The GUI states that the Pushover app is required on the phone.
+- Each newly raised alert can produce one normal-priority phone notification
+  containing target, band/frequency, mode, UTC decode time and SNR. Repeated
+  target decodes during the same active alert do not repeatedly notify.
+- Pushover delivery runs in the background and fails quietly: local visual and
+  audible alerts, retained decodes and monitoring remain unaffected.
+- Credentials remain local in `config.json`, are absent from the supplied
+  configuration template, and are never included in diagnostics or event logs.
+- Pushover is notification-only and adds no radio or transmit control.
+
+Retained from V0.13.1:
 
 - Removed the Max W column, Edit max drive control, active maximum-power model,
   and supplied configuration values because DX Assistant cannot set or verify
@@ -67,7 +83,7 @@ Retained from V0.12.0:
   dual-VFO or safety-state capability.
 - A controlled colleague test guide for experimental radio validation.
 
-Verification baseline: **86 automated tests passing** on 22 July 2026.
+Verification baseline: **94 automated tests passing** on 23 July 2026.
 
 ## Proven operating environment (previous release)
 
@@ -89,6 +105,8 @@ Verification baseline: **86 automated tests passing** on 22 July 2026.
   PSK Reporter radius, and target callsign.
 - Standard 160m through 6m plan with upgrade-safe addition of missing bands.
 - PSK Reporter band focus with automatic full-sweep fallback.
+- Optional one-per-alert Pushover phone notification with a stopped-only test
+  and configuration dialog.
 - Configure-only preparation of DX Call/Grid in WSJT-X.
 - Portable Windows executable with bundled Python runtime.
 
@@ -103,6 +121,9 @@ Verification baseline: **86 automated tests passing** on 22 July 2026.
 - DX Assistant has no RF-power display or setting control. Safe power must be
   selected and confirmed directly by the operator at the radio.
 - The installer is unsigned, so Windows may display an unknown-publisher warning.
+- Pushover mobile delivery requires its phone app, a Pushover account, an
+  application/API token, and internet access. DX Assistant cannot guarantee
+  delivery and never substitutes it for the local alert.
 - PSK Reporter is the sole external evidence source. Cluster integration and any
   transmit automation are outside the current scope.
 
@@ -122,3 +143,6 @@ only changes and deliberately excluded transmit-related behaviour.
 
 - Complete `documentation/OPERATOR_ACCEPTANCE_TEST.md` with the FTDX101D and use
   `source/COLLEAGUE_TEST_GUIDE.md` for each additional candidate radio.
+- Configure personal Pushover credentials locally, send a test notification,
+  and confirm one phone notification is received for a newly raised target
+  alert. Do not send the credentials to the developer or commit them.

@@ -1,6 +1,35 @@
-# DX Assistant V0.13.1 Beta - 22 July 2026
+# DX Assistant V0.14.0 Beta - 23 July 2026
 
-V0.13.1 removes the reference maximum-power display because DX Assistant cannot
+V0.14 adds optional Pushover phone notifications for newly raised target alerts.
+
+## Changed in V0.14.0
+
+- Added a stopped-only **Mobile alerts** setup dialog which states that the
+  Pushover app is required on the phone.
+- Added masked User Key and API Token fields, an enable setting, and a
+  **Send test notification** action.
+- A newly raised target alert can send one normal-priority phone notification
+  containing callsign, band, dial frequency, mode, UTC decode time and SNR.
+- Repeated decodes do not send repeated phone notifications while the same
+  alert remains active.
+- Credentials are stored only in the local `config.json`, are absent from the
+  supplied template, and are never written to DX Assistant logs.
+- Pushover or internet failures are recorded generically and do not interfere
+  with the local visual/audible alert or monitoring.
+- Diagnostics now includes the mobile-alert delivery state without exposing
+  credentials.
+- The receive-only boundary is unchanged. Pushover is notification-only and
+  adds no radio or WSJT-X transmit control.
+
+## Verification
+
+- 94 automated tests pass, including credential validation/persistence,
+  credential-log exclusion, HTTPS POST composition, failure sanitisation,
+  GUI wording, one-per-alert delivery, and unchanged radio-control safety tests.
+
+## Included from V0.13.1
+
+V0.13.1 removed the reference maximum-power display because DX Assistant cannot
 set or verify the radio's RF power.
 
 ## Changed in V0.13.1
@@ -13,7 +42,7 @@ set or verify the radio's RF power.
   operator at the radio.
 - The receive-only boundary is unchanged; no power-setting command was added.
 
-## Verification
+### V0.13.1 verification
 
 - 86 automated tests pass, including a regression test confirming that legacy
   power values are ignored and no power column or control is presented.

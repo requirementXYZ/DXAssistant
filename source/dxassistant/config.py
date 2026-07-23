@@ -31,6 +31,9 @@ class AppConfig:
     psk_reporter_enabled: bool = True
     psk_reporter_lookback_minutes: int = 30
     psk_reporter_distance_km: int = 2500
+    pushover_enabled: bool = False
+    pushover_user_key: str = ""
+    pushover_api_token: str = ""
     source_path: Path | None = None
 
 
@@ -69,6 +72,11 @@ def load_config(path: Path) -> AppConfig:
         raise ValueError(
             "psk_reporter_distance_km must be 500, 1000, 1500, 2500, or 5000"
         )
+    pushover_user_key = str(raw.get("pushover_user_key", "")).strip()
+    pushover_api_token = str(raw.get("pushover_api_token", "")).strip()
+    pushover_enabled = bool(raw.get("pushover_enabled", False))
+    if pushover_enabled:
+        _validate_pushover_credentials(pushover_user_key, pushover_api_token)
 
     configured_bands = _require(raw, "bands", dict)
     band_names = list(STANDARD_FT8_FREQUENCIES_MHZ)
@@ -101,6 +109,9 @@ def load_config(path: Path) -> AppConfig:
         psk_reporter_enabled=bool(raw.get("psk_reporter_enabled", True)),
         psk_reporter_lookback_minutes=psk_lookback,
         psk_reporter_distance_km=psk_distance,
+        pushover_enabled=pushover_enabled,
+        pushover_user_key=pushover_user_key,
+        pushover_api_token=pushover_api_token,
         source_path=path,
     )
 
@@ -201,6 +212,40 @@ def save_psk_search_area(config: AppConfig, locator: str, distance_km: int) -> N
     raw = json.loads(path.read_text(encoding="utf-8"))
     raw["station_locator"] = locator
     raw["psk_reporter_distance_km"] = distance_km
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(json.dumps(raw, indent=2) + "\n", encoding="utf-8")
+    temporary.replace(path)
+
+
+def _validate_pushover_credentials(user_key: str, api_token: str) -> None:
+    identifier = re.compile(r"[A-Za-z0-9]{30}")
+    if not identifier.fullmatch(user_key):
+        raise ValueError("Pushover User Key must contain exactly 30 letters or numbers")
+    if not identifier.fullmatch(api_token):
+        raise ValueError("Pushover API Token must contain exactly 30 letters or numbers")
+
+
+def save_pushover_settings(
+    config: AppConfig,
+    enabled: bool,
+    user_key: str,
+    api_token: str,
+) -> None:
+    """Store local Pushover settings without logging or transmitting credentials."""
+
+    user_key = user_key.strip()
+    api_token = api_token.strip()
+    if enabled:
+        _validate_pushover_credentials(user_key, api_token)
+    elif user_key or api_token:
+        _validate_pushover_credentials(user_key, api_token)
+    if config.source_path is None:
+        raise ValueError("Configuration location is unavailable")
+    path = config.source_path
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    raw["pushover_enabled"] = bool(enabled)
+    raw["pushover_user_key"] = user_key
+    raw["pushover_api_token"] = api_token
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(json.dumps(raw, indent=2) + "\n", encoding="utf-8")
     temporary.replace(path)

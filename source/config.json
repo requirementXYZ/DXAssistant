@@ -8,6 +8,9 @@
   "psk_reporter_enabled": true,
   "psk_reporter_lookback_minutes": 30,
   "psk_reporter_distance_km": 2500,
+  "pushover_enabled": false,
+  "pushover_user_key": "",
+  "pushover_api_token": "",
   "log_directory": "logs",
   "bands": {
     "160m": {"enabled": false, "frequency_mhz": 1.840},

@@ -3,6 +3,68 @@
 This is the chronological record of product decisions, implementation, tests,
 packaging, and operator validation. Add new entries at the top.
 
+## 23 July 2026 - V0.14.0 optional Pushover mobile alerts
+
+User need:
+
+- Add an optional phone alert for wanted-station detection using Pushover and
+  make clear in the GUI that the Pushover app is required on the phone.
+
+Implementation:
+
+- Added an optional Pushover client that submits a normal-priority HTTPS
+  message when a target alert is newly raised.
+- Added a stopped-only **Mobile alerts** dialog with the phone-app requirement,
+  masked User Key and API Token fields, enable control, local save, and
+  **Send test notification** action.
+- The target message contains callsign, band/dial frequency, mode, UTC decode
+  time and SNR. Repeated decodes while the same alert remains active do not
+  repeatedly notify.
+- Delivery runs in a background worker. Internet, account, credential, quota
+  or service failure leaves the local audible/visual alert, decode retention
+  and monitoring unchanged.
+- Credentials are stored only in the operator's local `config.json`, excluded
+  from diagnostics and event logs, and blank/disabled in the supplied package.
+- The feature is notification-only. It adds no PTT, Enable Tx, Halt Tx, reply,
+  radio-mode, split, power, or other transmit command.
+- Updated the README, release notes, project status, acceptance test, installer
+  metadata, and 13-page DOCX/PDF user manual.
+
+Verification:
+
+- 94 automated tests passed, including new credential validation/persistence,
+  one-notification-per-alert, sanitised-error, GUI wording, HTTPS payload, and
+  static receive-only safety regression tests.
+- Python compilation and PowerShell bridge parser checks passed.
+- Source and portable no-radio smoke tests returned exit code 0; four-second
+  hidden portable and installed dashboard startups remained healthy.
+- The 956-entry ZIP contains the executable, bundled bridge/runtime,
+  configuration, release notes, README, colleague guide and DOCX/PDF manuals.
+  It contains no runtime logs and its Pushover fields are blank and disabled.
+- Silent isolated install, installed no-radio smoke and uninstall returned exit
+  code 0; `config.json` remained byte-for-byte unchanged after uninstall.
+- Microsoft Word exported the manual to PDF; all 13 rendered pages were
+  inspected with no clipping, overlap, broken content or missing text.
+
+Packages:
+
+- `releases/DXAssistant-v0.14.0-beta-Windows-portable.zip`
+  - SHA-256: `D299FC246C9F08766D19125894514188148461013429957BC811576279E0F992`
+- `releases/DXAssistant-v0.14.0-beta-Setup.exe`
+  - SHA-256: `0153A2C7956EAB6BA7019CC42E2DC19D755CF5185346DE1E71BF426DCEDF3B02`
+
+Repository synchronization:
+
+- Pending final commit, push, and remote verification.
+
+Remaining live test:
+
+- The package contains no personal Pushover credentials, so automated release
+  checks did not contact a phone. The operator should install Pushover, create
+  a personal application token, enter both keys locally, send the test message,
+  and confirm one notification for a newly raised target alert.
+- Automated verification did not tune or transmit with a live radio.
+
 ## 22 July 2026 - V0.13.1 misleading power-reference removal
 
 User need:

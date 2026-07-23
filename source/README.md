@@ -1,9 +1,31 @@
-# DX Assistant V0.13.1 Beta
+# DX Assistant V0.14.0 Beta
 
-This Beta extends the session plan to 160m, 80m and 6m and improves the main
-operating display while retaining V0.12's capability-gated OmniRig support.
+This Beta adds optional Pushover phone notifications while retaining the
+expanded band plan and capability-gated OmniRig support.
 The core safety boundary is unchanged: DX Assistant never keys the transmitter
 and never sets radio mode, split, power, or PTT.
+
+## V0.14 Pushover mobile alerts
+
+While stopped, select **Mobile alerts**. The dialog explicitly notes that the
+Pushover app is required on the phone. Enter the 30-character Pushover User Key
+and application API Token, enable mobile alerts, then select **Send test
+notification**.
+
+The credentials are masked in the GUI and stored locally in `config.json`.
+They are never written to DX Assistant event or decode logs and the supplied
+configuration contains no credentials. Keep a configured `config.json` private.
+
+When the target alert is newly raised, DX Assistant sends one normal-priority
+Pushover message containing the callsign, band, dial frequency, mode, UTC
+decode time and SNR. Repeated target decodes do not repeatedly notify the phone
+while the same alert is active. Internet or Pushover failure never prevents the
+local visual and audible alert; Diagnostics reports only generic mobile-delivery
+status and does not expose credentials.
+
+Pushover requires its phone app, an account, a User Key, and an application API
+Token. See the official setup and Message API documentation at
+`https://pushover.net/api`.
 
 ## V0.13 operating-display changes
 
@@ -29,8 +51,8 @@ The portable Windows build starts with `DXAssistant.exe` and does not require a
 separate Python installation. Alternatively, run the supplied Setup executable
 to install DX Assistant for the current Windows user with Start Menu and optional
 desktop shortcuts. Keep `config.json` beside the portable executable so the
-locator, PSK distance, enabled antenna bands, and operating frequencies can be
-saved. OmniRig 1.20
+locator, PSK distance, enabled antenna bands, operating frequencies, and
+optional Pushover settings can be saved. OmniRig 1.20
 remains a separate prerequisite and must have Rig 1 configured correctly.
 
 Once WSJT-X status is visible, choose a dwell time in the **Band search** panel
@@ -45,8 +67,9 @@ saved immediately and becomes the target at the next launch.
 ## Diagnostics, alarms and audit history
 
 Choose **Diagnostics** to see the current version, target, WSJT-X connection,
-band-search and PSK Reporter state, configuration/log paths, and audit-log health.
-The window can test the local alert sound and open the log folder.
+band-search, PSK Reporter and mobile-alert state, configuration/log paths, and
+audit-log health. The window can test the local alert sound and open the log
+folder.
 
 **Mute 15 min** temporarily suppresses audible target bells. Visual target
 alerts, band-search hold, retained target decodes and acknowledgement behaviour
@@ -108,13 +131,14 @@ band round-robin sweep. PSK Reporter cannot control the radio; HTTP access is
 confined to its dedicated read-only retrieval module. The public service is never
 queried more frequently than its requested five-minute interval.
 
-When a target is first decoded, DX Assistant rings the local bell, raises its
-window without changing its snapped/maximized layout, and enters **Target
-decoded** state. Further decodes accumulate without repeatedly moving the
-window until the alert has been acknowledged. **Acknowledge target alert** clears that
+When a target is first decoded, DX Assistant rings the local bell, optionally
+sends one Pushover phone notification, raises its window without changing its
+snapped/maximized layout, and enters **Target decoded** state. Further decodes
+accumulate without repeatedly moving the window or notifying the phone until
+the alert has been acknowledged. **Acknowledge target alert** clears that
 notification and returns the state to **Monitoring**. It does not delete the
-decode, reset counts, stop monitoring, or control the radio; a later target
-decode raises a new alert.
+decode, reset counts, stop monitoring, or control the radio; a later newly
+raised target alert can send another phone notification.
 
 ## Prepare the detected DX in WSJT-X
 

@@ -24,6 +24,7 @@ from .config import (
     save_band_frequencies,
     save_band_frequency,
     save_psk_search_area,
+    save_pushover_settings,
     save_target_call,
 )
 from .engine import DXEngine
@@ -32,6 +33,7 @@ from .logging import DecodeLogger, EventLogger
 from .omnirig import OmniRigClient, OmniRigError
 from .protocol import Decode, Heartbeat, Status
 from .pskreporter import PSKReporterClient, PSKReporterError, rank_bands
+from .pushover import PushoverClient, PushoverError
 from .receiver import UDPReceiver, WSJTXRequestError
 from .state import AppState, StateMachine
 
@@ -64,6 +66,7 @@ class Dashboard:
         self.receiver = UDPReceiver(config.udp_host, config.udp_port, self.events)
         self.omnirig = OmniRigClient()
         self.pskr_client = PSKReporterClient()
+        self.pushover_client = PushoverClient()
         self.search = SearchSession(120)
         self.tune_in_progress = False
         self.session_band_frequencies = {
@@ -84,6 +87,15 @@ class Dashboard:
         self.pskr_poll_in_progress = False
         self.pskr_next_poll = 0.0
         self.pskr_priority_bands = []
+        self.pushover_enabled = config.pushover_enabled
+        self.pushover_user_key = config.pushover_user_key
+        self.pushover_api_token = config.pushover_api_token
+        self.mobile_status = (
+            "Enabled - waiting for target"
+            if self.pushover_enabled
+            else "Disabled"
+        )
+        self.mobile_status_var = None
         self.last_search_error = ""
         self.alarm_muted_until = 0.0
         self.rig_compatibility_text = "Not checked"
@@ -307,11 +319,15 @@ class Dashboard:
         self.reset_frequencies_button = self._action_button(
             band_controls, "Restore frequencies", self.restore_default_frequencies
         )
+        self.mobile_alerts_button = self._action_button(
+            band_controls, "Mobile alerts", self.configure_mobile_alerts
+        )
         band_controls.columnconfigure(0, weight=1)
         band_controls.columnconfigure(1, weight=1)
         self.edit_frequency_button.grid(row=0, column=0, sticky="ew", padx=(0, 2), pady=(0, 4))
         self.toggle_band_button.grid(row=0, column=1, sticky="ew", padx=(2, 0), pady=(0, 4))
-        self.reset_frequencies_button.grid(row=1, column=0, columnspan=2, sticky="ew")
+        self.mobile_alerts_button.grid(row=1, column=0, sticky="ew", padx=(0, 2))
+        self.reset_frequencies_button.grid(row=1, column=1, sticky="ew", padx=(2, 0))
 
         recent_frame = ttk.LabelFrame(activity_panes, text=f"Recent WSJT-X activity (latest {MAX_RECENT_DECODES})", padding=8)
         target_frame = ttk.LabelFrame(activity_panes, text="Target decodes - retained for this session", padding=8)
@@ -887,6 +903,165 @@ class Dashboard:
         self.status_text.set("Decode displays cleared; the full CSV log is unchanged")
         self._audit("displays_cleared", "Operator cleared decode displays")
 
+    def configure_mobile_alerts(self):
+        window = tk.Toplevel(self.root)
+        window.title("Pushover mobile alerts")
+        window.geometry("540x350")
+        window.resizable(False, False)
+        frame = ttk.Frame(window, padding=14)
+        frame.pack(fill="both", expand=True)
+
+        ttk.Label(
+            frame,
+            text="The Pushover app is required on the phone.",
+            font=("Segoe UI", 11, "bold"),
+            foreground="#b06000",
+        ).pack(anchor="w", pady=(0, 6))
+        ttk.Label(
+            frame,
+            text=(
+                "Create a Pushover account and application, then enter the "
+                "30-character User Key and API Token. Credentials are stored "
+                "locally in config.json and are never written to DX Assistant logs."
+            ),
+            wraplength=500,
+            justify="left",
+        ).pack(anchor="w", pady=(0, 12))
+
+        enabled = tk.BooleanVar(value=self.pushover_enabled)
+        user_key = tk.StringVar(value=self.pushover_user_key)
+        api_token = tk.StringVar(value=self.pushover_api_token)
+        ttk.Checkbutton(
+            frame, text="Enable mobile alerts for target detections", variable=enabled
+        ).pack(anchor="w", pady=(0, 10))
+
+        fields = ttk.Frame(frame)
+        fields.pack(fill="x")
+        fields.columnconfigure(1, weight=1)
+        ttk.Label(fields, text="User Key").grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Entry(fields, textvariable=user_key, show="*", width=38).grid(
+            row=0, column=1, sticky="ew", padx=(10, 0), pady=4
+        )
+        ttk.Label(fields, text="API Token").grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Entry(fields, textvariable=api_token, show="*", width=38).grid(
+            row=1, column=1, sticky="ew", padx=(10, 0), pady=4
+        )
+
+        status = tk.StringVar(value=self.mobile_status)
+        self.mobile_status_var = status
+        ttk.Label(
+            frame, textvariable=status, wraplength=500, foreground="#5f6368"
+        ).pack(anchor="w", pady=(12, 8))
+
+        def save(close: bool = False):
+            if not self.save_mobile_alert_settings(
+                enabled.get(), user_key.get(), api_token.get()
+            ):
+                return False
+            status.set(self.mobile_status)
+            if close:
+                window.destroy()
+            return True
+
+        def test():
+            if save():
+                status.set("Sending test notification...")
+                self._send_mobile_test()
+
+        buttons = ttk.Frame(frame)
+        buttons.pack(fill="x", side="bottom")
+        ttk.Button(buttons, text="Save", command=lambda: save(True)).pack(
+            side="left"
+        )
+        ttk.Button(buttons, text="Send test notification", command=test).pack(
+            side="left", padx=8
+        )
+        ttk.Button(buttons, text="Close", command=window.destroy).pack(side="right")
+        window.transient(self.root)
+        window.grab_set()
+
+    def save_mobile_alert_settings(
+        self, enabled: bool, user_key: str, api_token: str
+    ) -> bool:
+        try:
+            save_pushover_settings(
+                self.config, enabled, user_key, api_token
+            )
+        except (OSError, ValueError, json.JSONDecodeError) as error:
+            messagebox.showerror(
+                "Could not save mobile alerts",
+                str(error),
+                parent=self.root,
+            )
+            return False
+        self.pushover_enabled = bool(enabled)
+        self.pushover_user_key = user_key.strip()
+        self.pushover_api_token = api_token.strip()
+        self.mobile_status = (
+            "Enabled - waiting for target"
+            if self.pushover_enabled
+            else "Disabled"
+        )
+        self._audit(
+            "mobile_alert_settings_changed",
+            "Pushover mobile alerts enabled"
+            if self.pushover_enabled
+            else "Pushover mobile alerts disabled",
+            enabled=self.pushover_enabled,
+        )
+        return True
+
+    def _send_mobile_test(self):
+        self._start_pushover_send(
+            "DX Assistant test",
+            "DX Assistant mobile alerts are configured.",
+            "test",
+        )
+
+    def _send_target_mobile_alert(self, packet: Decode, band: str):
+        if not self.pushover_enabled:
+            return
+        frequency_mhz = self.engine.state.dial_frequency_hz / 1_000_000
+        self._start_pushover_send(
+            f"DX Assistant: {self.engine.state.target_call} heard",
+            (
+                f"Target {self.engine.state.target_call} decoded on {band} "
+                f"({frequency_mhz:.3f} MHz), {packet.mode}, "
+                f"{packet.time} UTC, SNR {packet.snr} dB."
+            ),
+            "target",
+        )
+
+    def _start_pushover_send(self, title: str, message: str, purpose: str):
+        user_key = self.pushover_user_key
+        api_token = self.pushover_api_token
+
+        def worker():
+            try:
+                self.pushover_client.push(user_key, api_token, title, message)
+                self.events.put(("pushover_result", (purpose, None)))
+            except PushoverError as error:
+                self.events.put(("pushover_result", (purpose, str(error))))
+
+        threading.Thread(target=worker, name="Pushover", daemon=True).start()
+
+    def _handle_pushover_result(self, payload):
+        purpose, error = payload
+        if error:
+            self.mobile_status = f"Last {purpose} notification failed"
+            self._audit(
+                "mobile_alert_failed",
+                f"Pushover {purpose} notification failed",
+            )
+        else:
+            self.mobile_status = f"Last {purpose} notification sent"
+            self._audit(
+                "mobile_alert_sent",
+                f"Pushover {purpose} notification sent",
+            )
+        if self.mobile_status_var is not None:
+            self.mobile_status_var.set(self.mobile_status)
+
     def mute_alarm(self):
         self.alarm_muted_until = time.monotonic() + 15 * 60
         self._audit("alarm_muted", "Audible alarm muted for 15 minutes")
@@ -914,6 +1089,7 @@ class Dashboard:
             f"Current band: {self.current_band}\n"
             f"Search: {self.search_status.get()}\n"
             f"PSK Reporter: {self.pskr_status_text.get()}\n"
+            f"Mobile alerts: {self.mobile_status}\n"
             f"Last search error: {self.last_search_error or 'None'}\n"
             f"OmniRig compatibility: {self.rig_compatibility_text}\n"
             f"Configuration: {self.config.source_path}\n"
@@ -1012,6 +1188,8 @@ class Dashboard:
                     self._handle_pskr_result(payload)
                 elif kind == "rig_check_result":
                     self._handle_rig_check_result(payload)
+                elif kind == "pushover_result":
+                    self._handle_pushover_result(payload)
                 self._update_controls()
         except queue.Empty:
             pass
@@ -1157,6 +1335,7 @@ class Dashboard:
                         self.alarm_active = True
                         if self.config.alarm_enabled and time.monotonic() >= self.alarm_muted_until:
                             self.root.bell()
+                        self._send_target_mobile_alert(packet, band)
                         # Calling deiconify on an already visible snapped window
                         # can restore its old free-floating geometry on Windows.
                         # Restore only a genuinely minimized window; otherwise
@@ -1199,6 +1378,7 @@ class Dashboard:
         for button in (
             self.edit_frequency_button,
             self.toggle_band_button,
+            self.mobile_alerts_button,
             self.reset_frequencies_button,
         ):
             self._set_action_state(

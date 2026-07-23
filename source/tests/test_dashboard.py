@@ -143,6 +143,82 @@ class DashboardTests(unittest.TestCase):
         self.dashboard.acknowledge()
         self.assertEqual(self.dashboard.machine.current, AppState.MONITORING)
 
+    def test_mobile_alert_is_sent_once_per_new_target_alert(self):
+        self.dashboard.pushover_enabled = True
+        self.dashboard.pushover_user_key = "U" * 30
+        self.dashboard.pushover_api_token = "A" * 30
+        self.dashboard.machine.transition(AppState.STARTING, "test")
+        self.dashboard.machine.transition(AppState.MONITORING, "test")
+        self.dashboard.engine.state.dial_frequency_hz = 14_074_000
+        first = Decode(
+            "TEST", 3, True, "12:00:00", -14, 0.1, 1300, "FT8", "CQ T22TT RI49"
+        )
+        second = Decode(
+            "TEST", 3, True, "12:00:15", -12, 0.1, 1300, "FT8", "CQ T22TT RI49"
+        )
+        with patch.object(self.dashboard.root, "state", return_value="normal"):
+            with patch.object(self.dashboard, "_send_target_mobile_alert") as send:
+                self.dashboard._handle_packet(first)
+                self.dashboard._handle_packet(second)
+        send.assert_called_once_with(first, "20m")
+
+    def test_mobile_settings_are_saved_without_credentials_in_event_log(self):
+        user_key = "U" * 30
+        api_token = "A" * 30
+        self.assertTrue(
+            self.dashboard.save_mobile_alert_settings(
+                True, user_key, api_token
+            )
+        )
+        saved = json.loads(self.config_path.read_text(encoding="utf-8"))
+        self.assertTrue(saved["pushover_enabled"])
+        event_text = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in Path(self.temp.name).glob("events-*.jsonl")
+        )
+        self.assertNotIn(user_key, event_text)
+        self.assertNotIn(api_token, event_text)
+
+    def test_mobile_dialog_states_pushover_is_required_on_phone(self):
+        self.dashboard.configure_mobile_alerts()
+        window = next(
+            child for child in self.root.winfo_children()
+            if isinstance(child, tk.Toplevel)
+        )
+
+        def texts(widget):
+            values = []
+            try:
+                values.append(str(widget.cget("text")))
+            except tk.TclError:
+                pass
+            for child in widget.winfo_children():
+                values.extend(texts(child))
+            return values
+
+        self.assertIn(
+            "The Pushover app is required on the phone.",
+            texts(window),
+        )
+        window.destroy()
+
+    def test_mobile_test_result_updates_open_dialog_status(self):
+        self.dashboard.configure_mobile_alerts()
+        self.dashboard._handle_pushover_result(("test", None))
+        self.assertEqual(
+            self.dashboard.mobile_status_var.get(),
+            "Last test notification sent",
+        )
+        self.dashboard._handle_pushover_result(("test", "sanitised failure"))
+        self.assertEqual(
+            self.dashboard.mobile_status_var.get(),
+            "Last test notification failed",
+        )
+        next(
+            child for child in self.root.winfo_children()
+            if isinstance(child, tk.Toplevel)
+        ).destroy()
+
     def test_operator_can_change_target_while_stopped(self):
         with patch("dxassistant.dashboard.simpledialog.askstring", return_value=" om3kfo "):
             self.dashboard.change_target()

@@ -11,6 +11,7 @@ from dxassistant.config import (
     save_band_frequency,
     save_band_frequencies,
     save_psk_search_area,
+    save_pushover_settings,
     save_target_call,
 )
 from dxassistant.logging import DecodeLogger, EventLogger
@@ -32,6 +33,9 @@ class ConfigAndLoggingTests(unittest.TestCase):
             self.assertEqual(config.log_directory, path.parent / "logs")
             self.assertEqual(config.station_locator, "JO03")
             self.assertEqual(config.psk_reporter_distance_km, 2500)
+            self.assertFalse(config.pushover_enabled)
+            self.assertEqual(config.pushover_user_key, "")
+            self.assertEqual(config.pushover_api_token, "")
             self.assertFalse(config.bands["160m"].enabled)
             self.assertEqual(config.bands["160m"].frequency_mhz, 1.840)
             self.assertFalse(config.bands["80m"].enabled)
@@ -115,6 +119,41 @@ class ConfigAndLoggingTests(unittest.TestCase):
             saved = json.loads(path.read_text(encoding="utf-8"))
             self.assertEqual(saved["station_locator"], "IO91WM")
             self.assertEqual(saved["psk_reporter_distance_km"], 1000)
+
+    def test_pushover_settings_are_validated_and_persisted(self):
+        raw = {
+            "target_call": "T22TT", "udp_host": "127.0.0.1", "udp_port": 2237,
+            "alarm_enabled": True, "heartbeat_timeout_seconds": 15,
+            "log_directory": "logs",
+            "bands": {"20m": {"enabled": True, "frequency_mhz": 14.074}},
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "config.json"
+            path.write_text(json.dumps(raw), encoding="utf-8")
+            config = load_config(path)
+            user_key = "U" * 30
+            api_token = "A" * 30
+            save_pushover_settings(config, True, user_key, api_token)
+            saved = json.loads(path.read_text(encoding="utf-8"))
+            self.assertTrue(saved["pushover_enabled"])
+            self.assertEqual(saved["pushover_user_key"], user_key)
+            self.assertEqual(saved["pushover_api_token"], api_token)
+            loaded = load_config(path)
+            self.assertTrue(loaded.pushover_enabled)
+
+    def test_enabled_pushover_requires_complete_credentials(self):
+        raw = {
+            "target_call": "T22TT", "udp_host": "127.0.0.1", "udp_port": 2237,
+            "alarm_enabled": True, "heartbeat_timeout_seconds": 15,
+            "log_directory": "logs",
+            "bands": {"20m": {"enabled": True, "frequency_mhz": 14.074}},
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "config.json"
+            path.write_text(json.dumps(raw), encoding="utf-8")
+            config = load_config(path)
+            with self.assertRaises(ValueError):
+                save_pushover_settings(config, True, "short", "A" * 30)
 
     def test_band_enablement_and_frequency_plan_are_persisted(self):
         raw = {

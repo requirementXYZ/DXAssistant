@@ -30,14 +30,14 @@ class SafetyTests(unittest.TestCase):
         self.assertNotIn("WSJTX_HALT", protocol)
         self.assertNotIn("EnableTx", protocol)
 
-    def test_http_access_is_confined_to_psk_reporter_module(self):
+    def test_http_access_is_confined_to_approved_receive_side_services(self):
         package = Path(__file__).resolve().parents[1] / "dxassistant"
         network_modules = []
         for path in package.glob("*.py"):
             source = path.read_text(encoding="utf-8")
             if "urllib.request" in source:
                 network_modules.append(path.name)
-        self.assertEqual(network_modules, ["pskreporter.py"])
+        self.assertEqual(network_modules, ["pskreporter.py", "pushover.py"])
 
     def test_omnirig_bridge_cannot_key_or_configure_transmit(self):
         bridge = Path(__file__).resolve().parents[1] / "dxassistant" / "omnirig_bridge.ps1"

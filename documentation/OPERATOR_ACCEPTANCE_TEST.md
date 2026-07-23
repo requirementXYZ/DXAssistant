@@ -1,4 +1,4 @@
-# DX Assistant V0.13.1 Beta operator acceptance test
+# DX Assistant V0.14.0 Beta operator acceptance test
 
 These are the remaining live checks. Automated tests and packaging checks do not
 transmit or alter a live radio. Perform the radio portions only when convenient,
@@ -7,9 +7,9 @@ with WSJT-X Enable Tx off and the amplifier in standby.
 ## Installation and startup
 
 - Close every older DX Assistant instance.
-- Run `DXAssistant-v0.13.1-beta-Setup.exe` and accept or decline the optional
+- Run `DXAssistant-v0.14.0-beta-Setup.exe` and accept or decline the optional
   desktop shortcut.
-- Confirm the application opens from the Start Menu and reports V0.13.1 Beta.
+- Confirm the application opens from the Start Menu and reports V0.14.0 Beta.
 - Confirm the previous portable release remains untouched.
 - If Windows SmartScreen appears, confirm the file name before choosing to run
   the unsigned private Beta.
@@ -25,7 +25,7 @@ with WSJT-X Enable Tx off and the amplifier in standby.
 - Change target while stopped, close and reopen DX Assistant, and confirm the
   selected target persists.
 
-## V0.13.1 dashboard and band-plan checks
+## Dashboard and band-plan checks
 
 - Confirm the session plan shows 160m at 1.840 MHz, 80m at 3.573 MHz and 6m at
   50.313 MHz, initially disabled.
@@ -49,6 +49,26 @@ with WSJT-X Enable Tx off and the amplifier in standby.
   the visual alert/hold still occurs without a bell.
 - Open the log folder and confirm a daily decode CSV and
   `events-YYYY-MM-DD.jsonl` appear during operation.
+
+## Pushover mobile-alert checks
+
+- Install and configure the Pushover app on the phone. Create a personal
+  Pushover application/API token; keep the User Key and API Token private.
+- With monitoring stopped, select **Mobile alerts**. Confirm the dialog clearly
+  says that the Pushover app is required on the phone.
+- Enter the two 30-character keys. Confirm both fields are masked, enable mobile
+  alerts, and select **Send test notification**.
+- Confirm the test arrives on the intended phone, then save the settings.
+- Use the simulator or a suitable live target opportunity. Confirm a newly
+  raised target alert produces one phone notification containing the target,
+  band/frequency, mode, UTC time and SNR.
+- Allow further target decodes while the same alert remains active and confirm
+  the phone is not repeatedly notified.
+- Temporarily use an invalid token or disconnect internet access. Confirm the
+  local target alert, retained decode and monitoring still work. Restore the
+  correct setting afterwards.
+- Open Diagnostics and the event log. Confirm they show only generic mobile
+  status and contain neither key.
 
 ## Recovery rehearsal
 

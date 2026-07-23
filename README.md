@@ -14,7 +14,7 @@ station, not from a remote control or autonomous transmit path. It never keys
 the radio, never initiates a reply, and never takes control of operating
 decisions; the operator remains fully in control at all times.
 
-The current release is **V0.13.1 Beta**. Radio support
+The current release is **V0.14.0 Beta**. Radio support
 is capability-gated rather than model-gated: an OmniRig profile must expose the
 required dual-VFO frequency and safety-state features, and every new radio
 still requires the controlled physical validation described in the colleague
@@ -24,7 +24,7 @@ guide.
 
 ### Windows installer
 
-1. Download `DXAssistant-v0.13.1-beta-Setup.exe` from the current release.
+1. Download `DXAssistant-v0.14.0-beta-Setup.exe` from the current release.
 2. Close any earlier DX Assistant instance.
 3. Run the installer. It is currently unsigned, so Windows may show an
    unknown-publisher warning; verify that the file came from this repository.
@@ -34,7 +34,7 @@ guide.
 
 ### Portable package
 
-1. Download `DXAssistant-v0.13.1-beta-Windows-portable.zip` from the current
+1. Download `DXAssistant-v0.14.0-beta-Windows-portable.zip` from the current
    release.
 2. Select **Extract All**. Do not run the application inside the ZIP preview.
 3. Keep `DXAssistant.exe`, `config.json`, and the complete `_internal` folder
@@ -50,6 +50,8 @@ guide.
   connected radio.
 - A radio/profile combination exposing readable and writable VFO A and VFO B
   frequency plus readable VFO, split, receive, and transmit state.
+- For optional phone notifications: the Pushover app on the phone, a Pushover
+  User Key, and an application API Token.
 
 ## Quick start
 
@@ -63,16 +65,18 @@ guide.
    read-only. Do not continue with CAT band searching if it reports a missing
    capability.
 5. While stopped, select **Change target** and enter the DX callsign.
-6. Select **Start monitoring** and confirm the WSJT-X version, mode, and dial
+6. Optionally select **Mobile alerts**, enter the Pushover credentials, enable
+   the feature, and send a test notification.
+7. Select **Start monitoring** and confirm the WSJT-X version, mode, and dial
    frequency appear.
-7. Choose the dwell time and select **Start band search**.
-8. When the target is decoded, inspect the retained decode and make all calling
+8. Choose the dwell time and select **Start band search**.
+9. When the target is decoded, inspect the retained decode and make all calling
    and transmit decisions yourself in WSJT-X.
 
 Before testing an unvalidated radio, follow
 [`source/COLLEAGUE_TEST_GUIDE.md`](source/COLLEAGUE_TEST_GUIDE.md) with the
 amplifier in standby. The full operating guide is available in
-[`documentation/DXAssistant-v0.13.1-beta-User-Manual.pdf`](documentation/DXAssistant-v0.13.1-beta-User-Manual.pdf).
+[`documentation/DXAssistant-v0.14.0-beta-User-Manual.pdf`](documentation/DXAssistant-v0.14.0-beta-User-Manual.pdf).
 
 ## Project layout
 
@@ -87,12 +91,14 @@ amplifier in standby. The full operating guide is available in
 
 ## Current positions
 
-- Latest packaged release: V0.13.1 Beta.
-- Active development source: `source/` at version `0.13.1-beta`.
+- Latest packaged release: V0.14.0 Beta.
+- Active development source: `source/` at version `0.14.0-beta`.
 - OmniRig integration is capability-gated and contains no radio-model allow-list.
 - Standard session plan: 160m through 6m, with 160m, 80m and 6m disabled by
   default pending antenna configuration.
-- Automated test baseline: 86 passing tests as of 22 July 2026.
+- Optional notification-only Pushover mobile alerts; credentials remain local
+  and are excluded from logs.
+- Automated test baseline: 94 passing tests as of 23 July 2026.
 - Canonical repository: `https://github.com/requirementXYZ/DXAssistant`.
 
 See `documentation/PROJECT_STATUS.md` for the current product state and
